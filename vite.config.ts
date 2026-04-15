@@ -33,5 +33,5 @@ export default defineConfig({
       }
     })
   ],
-  base: '/tdee-tracker/', 
+  base: '/tdee-max/', 
 })
