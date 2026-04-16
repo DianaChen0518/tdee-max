@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useTdeeStore, getLocalYYYYMMDD } from '../../store/useTdeeStore';
+import { useTdeeStore } from '../../store/useTdeeStore';
 import { useDark, useToggle } from '@vueuse/core';
+import { DateUtils } from '../../utils/DateUtils';
 
 const emit = defineEmits(['open-settings', 'open-audit']);
 
@@ -9,7 +10,7 @@ const store = useTdeeStore();
 const isDark = useDark();
 const toggleDark = useToggle(isDark);
 
-const isToday = computed(() => store.selectedDate === getLocalYYYYMMDD(new Date()));
+const isToday = computed(() => store.selectedDate === DateUtils.getLocalYYYYMMDD());
 </script>
 
 <template>

@@ -3,6 +3,7 @@ import { Database, DayData, Food } from '../types';
 /**
  * Utility for managing daily data operations.
  * Separates complex data transformation logic from state management.
+ * Implements "Dumb Data" transformation patterns.
  */
 export class DayManager {
   
@@ -28,6 +29,20 @@ export class DayManager {
       workouts: [], 
       foods: [] 
     };
+  }
+
+  /**
+   * Finds the last day before dateStr that has food logs and returns its foods.
+   */
+  public static findLastDietDayFoods(database: Database, dateStr: string): Food[] {
+    const pastDates = Object.keys(database)
+      .filter(d => d < dateStr && database[d].foods.length > 0)
+      .sort((a, b) => b.localeCompare(a));
+    
+    if (pastDates.length === 0) return [];
+    
+    // Deep copy to prevent state leakage
+    return database[pastDates[0]].foods.map(f => ({ ...f }));
   }
 
   /**

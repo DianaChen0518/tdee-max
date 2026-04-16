@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx';
 import { CalculatorService } from '../services/CalculatorService';
-import { getLocalYYYYMMDD } from '../store/useTdeeStore';
+import { DateUtils } from './DateUtils';
 import { Database, UserProfile } from '../types';
 
 export const exportTdeeData = (database: Database, userProfile: UserProfile) => {
@@ -21,5 +21,5 @@ export const exportTdeeData = (database: Database, userProfile: UserProfile) => 
   const ws = XLSX.utils.json_to_sheet(exportData);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "数据追踪");
-  XLSX.writeFile(wb, `TDEE_Data_${getLocalYYYYMMDD(new Date())}.xlsx`);
+  XLSX.writeFile(wb, `TDEE_Data_${DateUtils.getLocalYYYYMMDD()}.xlsx`);
 };

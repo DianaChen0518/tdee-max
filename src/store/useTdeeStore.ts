@@ -4,18 +4,12 @@ import { useStorage } from '@vueuse/core';
 import { UserProfile, Database, DayData, Food, RecipeCombo, DailySummaryMetrics } from '../types';
 import { CalculatorService } from '../services/CalculatorService';
 import { DayManager } from '../utils/day-manager';
-
-/**
- * Utility to get YYYY-MM-DD in local timezone.
- */
-export const getLocalYYYYMMDD = (d: Date): string => {
-  const tzOffset = d.getTimezoneOffset() * 60000;
-  return new Date(d.getTime() - tzOffset).toISOString().split('T')[0];
-};
+import { DateUtils } from '../utils/DateUtils';
+import { Logger } from '../utils/Logger';
 
 /**
  * Main TDEE Store for managing user profile, food database, and daily logs.
- * Follows an enterprise-grade setup with logic decoupled into Services/Utils.
+ * Orchestrates state while delegating business logic to Services/Utils.
  */
 export const useTdeeStore = defineStore('tdee', () => {
   // --- Persistent State ---
@@ -40,7 +34,7 @@ export const useTdeeStore = defineStore('tdee', () => {
   const gistId = useStorage<string>('tdee_gist_id', '');
 
   // --- Reactive UI State ---
-  const selectedDate = ref(getLocalYYYYMMDD(new Date()));
+  const selectedDate = ref(DateUtils.getLocalYYYYMMDD());
 
   // --- Computed Views ---
   const isConfigured = computed(() => {
@@ -55,7 +49,7 @@ export const useTdeeStore = defineStore('tdee', () => {
     return CalculatorService.calculateDailySummary(activeDay.value, userProfile.value, selectedDate.value);
   });
 
-  // Individual derived metrics
+  // Individual derived metrics for UI convenience
   const age = computed(() => CalculatorService.calculateAge(userProfile.value.birthDate, selectedDate.value));
   const bmr = computed(() => summary.value.bmr);
   const tefCalories = computed(() => summary.value.tef);
@@ -80,35 +74,28 @@ export const useTdeeStore = defineStore('tdee', () => {
   }, { immediate: true });
 
   const changeDate = (days: number) => {
-    const d = new Date(selectedDate.value);
-    d.setDate(d.getDate() + days);
-    selectedDate.value = getLocalYYYYMMDD(d);
+    selectedDate.value = DateUtils.offsetDate(selectedDate.value, days);
   };
   
   const goToToday = () => {
-    selectedDate.value = getLocalYYYYMMDD(new Date());
+    selectedDate.value = DateUtils.getLocalYYYYMMDD();
   };
 
   const clearDayData = () => {
+    Logger.info('Clearing data for date', selectedDate.value);
     database.value[selectedDate.value] = { weight: 0, steps: 0, workouts: [], foods: [] };
   };
 
   const copyYesterdayDiet = () => {
-    const pastDates = Object.keys(database.value)
-      .filter(d => d < selectedDate.value && database.value[d].foods.length > 0)
-      .sort((a, b) => b.localeCompare(a));
-    
-    if (pastDates.length > 0) {
-      const lastFoodDay = database.value[pastDates[0]];
-      database.value[selectedDate.value].foods = lastFoodDay.foods.map(f => ({ ...f }));
+    const lastFoods = DayManager.findLastDietDayFoods(database.value, selectedDate.value);
+    if (lastFoods.length > 0) {
+      database.value[selectedDate.value].foods = lastFoods;
+      Logger.info('Copied past diet to current day', { date: selectedDate.value });
     }
   };
 
   const copyMealToTomorrow = (mealType: string) => {
-    const d = new Date(selectedDate.value);
-    d.setDate(d.getDate() + 1);
-    const tomorrowStr = getLocalYYYYMMDD(d);
-    
+    const tomorrowStr = DateUtils.offsetDate(selectedDate.value, 1);
     initDayIfNotExists(tomorrowStr);
     
     database.value[tomorrowStr].foods = DayManager.copyFoods(
@@ -116,6 +103,7 @@ export const useTdeeStore = defineStore('tdee', () => {
       database.value[tomorrowStr].foods,
       mealType
     );
+    Logger.info(`Copied ${mealType} to tomorrow`, { tomorrowStr });
   };
 
   return {
