@@ -56,3 +56,8 @@ export const MET_VALUES = {
   RESISTANCE_MEDIUM: 5.0,
   RESISTANCE_LOW: 3.5
 };
+
+export const MAX_HR_TANAKA = {
+  INTERCEPT: 208,
+  AGE_MULT: 0.7
+};

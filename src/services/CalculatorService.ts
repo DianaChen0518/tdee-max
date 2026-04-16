@@ -6,7 +6,8 @@ import {
   EPOC_TIERS, 
   EPOC_DURATION_THRESHOLD_MINS,
   AEROBIC_FORMULA_CONSTANTS,
-  MET_VALUES
+  MET_VALUES,
+  MAX_HR_TANAKA
 } from '../constants/metabolic';
 
 /**
@@ -92,7 +93,7 @@ export class CalculatorService {
           const workoutKcal = Math.max(0, kcalPerMin * totalMins);
 
           // EPOC Tiered Model
-          const maxHR = 220 - age;
+          const maxHR = MAX_HR_TANAKA.INTERCEPT - (MAX_HR_TANAKA.AGE_MULT * age);
           const hrr = Math.max(0, maxHR - (rhr || 70));
           const pctHRR = hrr > 0 ? (hr - (rhr || 70)) / hrr : 0;
 
