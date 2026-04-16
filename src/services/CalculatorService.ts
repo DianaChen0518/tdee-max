@@ -3,7 +3,7 @@ import {
   BMR_CONSTANTS, 
   THERMIC_EFFECT_OF_FOOD_RATIO, 
   NEAT_CONSTANTS, 
-  EPOC_TIERS, 
+  EPOC_DYNAMIC_MODEL, 
   EPOC_DURATION_THRESHOLD_MINS,
   AEROBIC_FORMULA_CONSTANTS,
   MET_VALUES,
@@ -59,10 +59,19 @@ export class CalculatorService {
   }
 
   /**
-   * Exercise Activity Thermogenesis (EAT) and tiered EPOC.
+   * Calculates Exercise Activity Thermogenesis (EAT) and EPOC.
+   * Note: This returns NET calories (subtracting BMR for the workout duration).
    */
-  public static calculateEAT(workouts: Workout[], weight: number, age: number, gender: 'M' | 'F', rhr: number): { eat: number, epoc: number } {
+  public static calculateEAT(
+    workouts: Workout[], 
+    weight: number, 
+    age: number, 
+    gender: 'M' | 'F', 
+    rhr: number,
+    bmr: number
+  ): { eat: number, epoc: number } {
     if (!weight || !workouts || workouts.length === 0) return { eat: 0, epoc: 0 };
+    const bmrPerMin = bmr / 1440;
 
     return workouts.reduce((res, wo) => {
       const type = wo.type || 'aerobic';
@@ -90,26 +99,30 @@ export class CalculatorService {
           const config = gender === 'M' ? AEROBIC_FORMULA_CONSTANTS.MALES : AEROBIC_FORMULA_CONSTANTS.FEMALES;
           
           const kcalPerMin = (config.INTERCEPT + config.HR_MULT * hr + config.WEIGHT_MULT * weight + config.AGE_MULT * age) / config.DIVISOR;
-          const workoutKcal = Math.max(0, kcalPerMin * totalMins);
+          const grossWorkoutKcal = Math.max(0, kcalPerMin * totalMins);
+          const netWorkoutKcal = Math.max(0, grossWorkoutKcal - (bmrPerMin * totalMins));
 
-          // EPOC Tiered Model
+          // EPOC Tiered Model - Based on physiological strain (Gross)
           const maxHR = MAX_HR_TANAKA.INTERCEPT - (MAX_HR_TANAKA.AGE_MULT * age);
           const hrr = Math.max(0, maxHR - (rhr || 70));
           const pctHRR = hrr > 0 ? (hr - (rhr || 70)) / hrr : 0;
 
           let epocKcal = 0;
           if (totalMins >= EPOC_DURATION_THRESHOLD_MINS) {
-            const tier = EPOC_TIERS.find(t => pctHRR < t.threshold) || EPOC_TIERS[EPOC_TIERS.length - 1];
-            epocKcal = workoutKcal * tier.multiplier;
+            // Dynamic Model: Multiplier = 0.24 * (%HRR ^ 2.2)
+            const dynamicMultiplier = EPOC_DYNAMIC_MODEL.COEFFICIENT * Math.pow(pctHRR, EPOC_DYNAMIC_MODEL.EXPONENT);
+            // Apply multiplier ONLY to Net calories (Gross - BMR slice)
+            epocKcal = netWorkoutKcal * dynamicMultiplier;
           }
 
-          res.eat += workoutKcal;
+          res.eat += netWorkoutKcal;
           res.epoc += epocKcal;
         }
       } else if (type === 'anaerobic') {
         const met = wo.intensity === 'high' ? MET_VALUES.RESISTANCE_HIGH : (wo.intensity === 'low' ? MET_VALUES.RESISTANCE_LOW : MET_VALUES.RESISTANCE_MEDIUM);
-        const workoutKcal = met * weight * (totalMins / 60);
-        res.eat += Math.max(0, workoutKcal);
+        // Formula: Net Kcal = (MET - 1) * weight * (totalMins / 60)
+        const netWorkoutKcal = (met - 1) * weight * (totalMins / 60);
+        res.eat += Math.max(0, netWorkoutKcal);
       }
 
       return res;
@@ -129,7 +142,7 @@ export class CalculatorService {
 
     const bmr = this.calculateBMR(data.weight, profile.heightCm, age, profile.gender);
     const neat = this.calculateNEAT(data.weight, data.steps || 0);
-    const { eat, epoc } = this.calculateEAT(data.workouts || [], data.weight, age, profile.gender, profile.rhr || 70);
+    const { eat, epoc } = this.calculateEAT(data.workouts || [], data.weight, age, profile.gender, profile.rhr || 70, bmr);
     
     const tef = bmr * THERMIC_EFFECT_OF_FOOD_RATIO;
     const tdee = bmr + tef + neat + eat + epoc;

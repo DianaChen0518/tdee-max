@@ -25,12 +25,10 @@ export const NEAT_CONSTANTS = {
   WEIGHT_COEFFICIENT: 0.0005 // Extra burn based on body mass
 };
 
-export const EPOC_TIERS = [
-  { threshold: 0.50, multiplier: 0.02, label: 'Low Intensity' },
-  { threshold: 0.70, multiplier: 0.07, label: 'Moderate Intensity' },
-  { threshold: 0.85, multiplier: 0.14, label: 'High Intensity' },
-  { threshold: 1.00, multiplier: 0.20, label: 'Peak/Anaerobic' }
-];
+export const EPOC_DYNAMIC_MODEL = {
+  COEFFICIENT: 0.24,
+  EXPONENT: 2.2
+};
 
 export const EPOC_DURATION_THRESHOLD_MINS = 20;
 
