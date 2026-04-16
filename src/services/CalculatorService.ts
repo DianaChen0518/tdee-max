@@ -63,18 +63,19 @@ export class CalculatorService {
    * @param age - Age in years.
    * @param gender - 'M' or 'F'.
    * @param rhr - Resting heart rate in bpm.
-   * @returns Total EAT in kcal.
+   * @returns An object containing base EAT and EPOC calories.
    */
-  public static calculateEAT(workouts: Workout[], weight: number, age: number, gender: 'M' | 'F', rhr: number): number {
-    if (!weight || !workouts.length) return 0;
+  public static calculateEAT(workouts: Workout[], weight: number, age: number, gender: 'M' | 'F', rhr: number): { eat: number, epoc: number } {
+    if (!weight || !workouts.length) return { eat: 0, epoc: 0 };
 
-    return workouts.reduce((total, wo) => {
+    return workouts.reduce((res, wo) => {
       const type = wo.type || 'aerobic';
 
       // Manual input: directly use the value if provided
       if (type === 'manual') {
         const kcal = typeof wo.kcal === 'string' ? parseFloat(wo.kcal) : (wo.kcal || 0);
-        return total + Math.max(0, kcal);
+        res.eat += Math.max(0, kcal);
+        return res;
       }
 
       // Calculate total duration in minutes
@@ -82,7 +83,7 @@ export class CalculatorService {
       const secs = typeof wo.secs === 'string' ? parseFloat(wo.secs) : (wo.secs || 0);
       const totalMins = Math.max(0, mins + (secs / 60));
       
-      if (totalMins <= 0) return total;
+      if (totalMins <= 0) return res;
 
       if (type === 'aerobic') {
         // Precise Keytel et al. (2005) formula for HR-based calorie burn
@@ -97,27 +98,27 @@ export class CalculatorService {
           let workoutKcal = kcalPerMin * totalMins;
 
           // --- EPOC (Afterburn Effect) Logic ---
-          // Karvonen Formula: EPOC Threshold = (HRR * 0.75) + RHR
           const maxHR = 220 - age;
           const hrr = Math.max(0, maxHR - rhr);
           const epocThreshold = (hrr * 0.75) + rhr;
 
+          let epocKcal = 0;
           if (hr >= epocThreshold && totalMins >= 20) {
-            workoutKcal *= 1.1; // 10% bonus for high intensity and sufficient duration
+            epocKcal = workoutKcal * 0.1; // 10% bonus
           }
 
-          return total + Math.max(0, workoutKcal);
+          res.eat += Math.max(0, workoutKcal);
+          res.epoc += Math.max(0, epocKcal);
         }
       } else if (type === 'anaerobic') {
         // MET-based calculation for resistance training
-        // High (7.0), Medium (5.0), Low (3.5)
         const met = wo.intensity === 'high' ? 7.0 : (wo.intensity === 'low' ? 3.5 : 5.0);
         const kcal = met * weight * (totalMins / 60);
-        return total + Math.max(0, kcal);
+        res.eat += Math.max(0, kcal);
       }
 
-      return total;
-    }, 0);
+      return res;
+    }, { eat: 0, epoc: 0 });
   }
 
   /**
@@ -132,12 +133,12 @@ export class CalculatorService {
     const bmr = this.calculateBMR(data.weight, profile.heightCm, age, profile.gender);
     
     // Total Daily Energy Expenditure (TDEE)
-    // Formula: (BMR * 1.1) [TEF] + NEAT + EAT
+    // Formula: BMR + TEF + NEAT + EAT + EPOC
     const neat = this.calculateNEAT(data.weight, data.steps);
-    const eat = this.calculateEAT(data.workouts, data.weight, age, profile.gender, profile.rhr);
+    const { eat, epoc } = this.calculateEAT(data.workouts, data.weight, age, profile.gender, profile.rhr);
     
     const tef = bmr * 0.1;
-    const tdee = bmr + tef + neat + eat;
+    const tdee = bmr + tef + neat + eat + epoc;
     const intake = data.foods.reduce((sum, f) => sum + (f.cals * (f.multiplier || 1)), 0);
     const deficit = tdee - intake;
 
@@ -145,6 +146,7 @@ export class CalculatorService {
       bmr: Math.round(bmr),
       neat: Math.round(neat),
       eat: Math.round(eat),
+      epoc: Math.round(epoc),
       tef: Math.round(tef),
       tdee: Math.round(tdee),
       intake: Math.round(intake),

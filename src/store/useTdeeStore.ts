@@ -62,6 +62,7 @@ export const useTdeeStore = defineStore('tdee', () => {
   const tefCalories = computed(() => summary.value.tef);
   const stepCalories = computed(() => summary.value.neat);
   const workoutCalories = computed(() => summary.value.eat);
+  const epocCalories = computed(() => summary.value.epoc);
   const tdee = computed(() => summary.value.tdee);
   const totalConsumed = computed(() => summary.value.intake);
   const dailyDeficit = computed(() => summary.value.deficit);
@@ -142,7 +143,7 @@ export const useTdeeStore = defineStore('tdee', () => {
   return {
     userProfile, githubToken, gistId, database, commonFoods, recipeCombos, selectedDate, activeDay,
     isConfigured, 
-    age, bmr, tefCalories, stepCalories, workoutCalories, tdee, totalConsumed, dailyDeficit, summary,
+    age, bmr, tefCalories, stepCalories, workoutCalories, epocCalories, tdee, totalConsumed, dailyDeficit, summary,
     changeDate, goToToday, clearDayData, copyYesterdayDiet, copyMealToTomorrow
   };
 });

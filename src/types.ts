@@ -102,6 +102,8 @@ export interface DailySummaryMetrics {
   neat: number;
   /** Exercise Activity Thermogenesis */
   eat: number;
+  /** Excess Post-exercise Oxygen Consumption (EPOC) */
+  epoc: number;
   /** Thermic Effect of Food (energy cost of digestion) */
   tef: number;
   /** Total Daily Energy Expenditure (including TEF) */

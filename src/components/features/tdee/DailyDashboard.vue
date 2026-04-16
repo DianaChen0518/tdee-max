@@ -46,6 +46,12 @@ const handleDelete = () => {
             + {{ store.workoutCalories }} <span class="text-[10px] text-emerald-600/60 font-normal">kcal</span>
           </span>
         </div>
+        <div class="flex justify-between text-xs font-medium text-slate-600 dark:text-slate-300">
+          <span>EPOC (后燃效应)</span>
+          <span class="font-bold text-emerald-600 dark:text-emerald-400">
+            + {{ store.epocCalories }} <span class="text-[10px] text-emerald-600/60 font-normal">kcal</span>
+          </span>
+        </div>
         <div class="flex justify-between font-black text-base mt-2 pt-2 border-t border-emerald-200/50 dark:border-[#1f5030] items-center">
           <span class="text-slate-800 dark:text-white">TDEE</span>
           <span class="text-emerald-600 dark:text-emerald-400 text-lg">
