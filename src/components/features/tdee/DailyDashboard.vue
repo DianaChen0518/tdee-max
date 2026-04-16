@@ -35,6 +35,12 @@ const handleDelete = () => {
           </span>
         </div>
         <div class="flex justify-between text-xs font-medium text-slate-600 dark:text-slate-300">
+          <span>TEF (食物热效应)</span>
+          <span class="font-bold text-slate-800 dark:text-slate-100">
+            + {{ store.tefCalories }} <span class="text-[10px] text-slate-400 font-normal">kcal</span>
+          </span>
+        </div>
+        <div class="flex justify-between text-xs font-medium text-slate-600 dark:text-slate-300">
           <span>EAT (运动)</span>
           <span class="font-bold text-emerald-600 dark:text-emerald-400">
             + {{ store.workoutCalories }} <span class="text-[10px] text-emerald-600/60 font-normal">kcal</span>

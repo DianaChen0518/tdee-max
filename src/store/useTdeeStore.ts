@@ -58,7 +58,7 @@ export const useTdeeStore = defineStore('tdee', () => {
   // Individual metrics (proxied from summary for backward compatibility and ease of use)
   const age = computed(() => CalculatorService.calculateAge(userProfile.value.birthDate));
   const bmr = computed(() => summary.value.bmr);
-  const baseCalories = computed(() => Math.round(summary.value.bmr * 1.1));
+  const tefCalories = computed(() => summary.value.tef);
   const stepCalories = computed(() => summary.value.neat);
   const workoutCalories = computed(() => summary.value.eat);
   const tdee = computed(() => summary.value.tdee);
@@ -141,7 +141,7 @@ export const useTdeeStore = defineStore('tdee', () => {
   return {
     userProfile, githubToken, gistId, database, commonFoods, recipeCombos, selectedDate, activeDay,
     isConfigured, 
-    age, bmr, baseCalories, stepCalories, workoutCalories, tdee, totalConsumed, dailyDeficit, summary,
+    age, bmr, tefCalories, stepCalories, workoutCalories, tdee, totalConsumed, dailyDeficit, summary,
     changeDate, goToToday, clearDayData, copyYesterdayDiet, copyMealToTomorrow
   };
 });

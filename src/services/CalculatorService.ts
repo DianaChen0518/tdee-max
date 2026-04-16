@@ -115,7 +115,8 @@ export class CalculatorService {
     const neat = this.calculateNEAT(data.weight, data.steps);
     const eat = this.calculateEAT(data.workouts, data.weight, age, profile.gender);
     
-    const tdee = (bmr * 1.1) + neat + eat;
+    const tef = bmr * 0.1;
+    const tdee = bmr + tef + neat + eat;
     const intake = data.foods.reduce((sum, f) => sum + (f.cals * (f.multiplier || 1)), 0);
     const deficit = tdee - intake;
 
@@ -123,6 +124,7 @@ export class CalculatorService {
       bmr: Math.round(bmr),
       neat: Math.round(neat),
       eat: Math.round(eat),
+      tef: Math.round(tef),
       tdee: Math.round(tdee),
       intake: Math.round(intake),
       deficit: Math.round(deficit)
