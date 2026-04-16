@@ -62,9 +62,10 @@ export class CalculatorService {
    * @param weight - Body weight in kg.
    * @param age - Age in years.
    * @param gender - 'M' or 'F'.
+   * @param rhr - Resting heart rate in bpm.
    * @returns Total EAT in kcal.
    */
-  public static calculateEAT(workouts: Workout[], weight: number, age: number, gender: 'M' | 'F'): number {
+  public static calculateEAT(workouts: Workout[], weight: number, age: number, gender: 'M' | 'F', rhr: number): number {
     if (!weight || !workouts.length) return 0;
 
     return workouts.reduce((total, wo) => {
@@ -93,7 +94,19 @@ export class CalculatorService {
           } else {
             kcalPerMin = (-20.4022 + 0.4472 * hr - 0.1263 * weight + 0.0740 * age) / 4.184;
           }
-          return total + Math.max(0, kcalPerMin * totalMins);
+          let workoutKcal = kcalPerMin * totalMins;
+
+          // --- EPOC (Afterburn Effect) Logic ---
+          // Karvonen Formula: EPOC Threshold = (HRR * 0.75) + RHR
+          const maxHR = 220 - age;
+          const hrr = Math.max(0, maxHR - rhr);
+          const epocThreshold = (hrr * 0.75) + rhr;
+
+          if (hr >= epocThreshold && totalMins >= 20) {
+            workoutKcal *= 1.1; // 10% bonus for high intensity and sufficient duration
+          }
+
+          return total + Math.max(0, workoutKcal);
         }
       } else if (type === 'anaerobic') {
         // MET-based calculation for resistance training
@@ -121,7 +134,7 @@ export class CalculatorService {
     // Total Daily Energy Expenditure (TDEE)
     // Formula: (BMR * 1.1) [TEF] + NEAT + EAT
     const neat = this.calculateNEAT(data.weight, data.steps);
-    const eat = this.calculateEAT(data.workouts, data.weight, age, profile.gender);
+    const eat = this.calculateEAT(data.workouts, data.weight, age, profile.gender, profile.rhr);
     
     const tef = bmr * 0.1;
     const tdee = bmr + tef + neat + eat;

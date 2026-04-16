@@ -20,7 +20,8 @@ export const useTdeeStore = defineStore('tdee', () => {
   const userProfile = useStorage<UserProfile>('tdee_user_v2', {
     birthDate: '', 
     heightCm: 0,
-    gender: 'M'
+    gender: 'M',
+    rhr: 70
   });
 
   const database = useStorage<Database>('tdee_db_v2', {});

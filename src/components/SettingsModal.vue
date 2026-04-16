@@ -132,6 +132,13 @@ const restoreData = async () => {
           <input type="number" v-model.number="store.userProfile.heightCm" class="w-full bg-gray-50 dark:bg-[#2c2c2c] border border-gray-300 dark:border-[#444] rounded-lg p-2 text-gray-800 dark:text-white outline-none focus:border-green-500 transition-colors">
         </div>
         <div>
+          <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">静息心率 (RHR)</label>
+          <input type="number" v-model.number="store.userProfile.rhr" placeholder="默认 70" class="w-full bg-gray-50 dark:bg-[#2c2c2c] border border-gray-300 dark:border-[#444] rounded-lg p-2 text-gray-800 dark:text-white outline-none focus:border-green-500 transition-colors">
+          <p class="text-[10px] text-gray-400 mt-1 leading-relaxed">
+            💡 用于计算储备心率 (HRR)。当运动强度达到 HRR 的 75% 且持续 >20 分钟时，系统将自动追加 10% 的后燃效应 (EPOC) 热量补偿。
+          </p>
+        </div>
+        <div>
           <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">生理性别 (Mifflin-St Jeor 公式基数)</label>
           <select v-model="store.userProfile.gender" class="w-full bg-gray-50 dark:bg-[#2c2c2c] border border-gray-300 dark:border-[#444] rounded-lg p-2 text-gray-800 dark:text-white outline-none focus:border-green-500 transition-colors">
             <option value="M">男性</option>

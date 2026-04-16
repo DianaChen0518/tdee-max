@@ -8,6 +8,8 @@ export interface UserProfile {
   heightCm: number;
   /** Biological gender for metabolic formulas */
   gender: 'M' | 'F';
+  /** Resting Heart Rate in bpm */
+  rhr: number;
 }
 
 /**
