@@ -78,5 +78,6 @@ export const MET_VALUES = {
 
 export const MAX_HR_TANAKA = {
   INTERCEPT: 208,
-  AGE_MULT: 0.7
+  AGE_MULT: 0.7,
+  SAFETY_OFFSET: 10 // Buffer for sensor anomalies
 };

@@ -88,6 +88,21 @@ TEF 指消化、吸收食物所需的能量支出，占摄入能量的 5%~15%（
 ### 计算路径
 - **路径 A (有饮食记录)**: $TEF = 0.10 \times Daily\_Intake\_Calories$
 - **路径 B (无饮食记录)**: $TEF = 0.10 \times (BMR + NEAT + \sum Net\_EAT)$
+---
+
+## 7. 工程实现补充规范 (Engineering Standards)
+为确保数据稳定性，计算引擎在实现层面严格执行以下保护性逻辑：
+
+### A. 负值钳制 (Negative Defense)
+所有组件（Net_EAT, EPOC）在结算前必须执行 `max(0, value)`。这确保了在极低心率或极短时长下，运动组件不会产生负热量倒扣总消耗。
+
+### B. 传感器容错 (Sensor Anomaly Protection)
+针对心率传感器可能产生的“尖峰异常值”（如瞬间跳转至 250bpm），系统会对 Avg_HR 输入进行截断：
+- **下限**: RHR (静息心率)
+- **上限**: Max_HR + 10 (生理缓冲区)
+
+### C. 时间归属 (Date Attribution)
+单次运动产生的所有 Net_EAT 与 EPOC 收益，统一归属于该运动记录创建的自然日，不进行跨日拆分，以确保日报表的一致性。
 
 ---
 

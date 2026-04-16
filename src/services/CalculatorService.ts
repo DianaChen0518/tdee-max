@@ -104,8 +104,14 @@ export class CalculatorService {
 
           // EPOC Tiered Model - Based on physiological strain (Gross)
           const maxHR = MAX_HR_TANAKA.INTERCEPT - (MAX_HR_TANAKA.AGE_MULT * age);
-          const hrr = Math.max(0, maxHR - (rhr || 70));
-          const pctHRR = hrr > 0 ? (hr - (rhr || 70)) / hrr : 0;
+          const safeMaxHR = maxHR + MAX_HR_TANAKA.SAFETY_OFFSET;
+          const currentRhr = rhr || 70;
+          
+          // Sensor Anomaly Protection: Clamp HR input to physiological bounds
+          const clampedHR = Math.max(currentRhr, Math.min(safeMaxHR, hr));
+          
+          const hrr = Math.max(0, maxHR - currentRhr);
+          const pctHRR = hrr > 0 ? Math.max(0, Math.min(1.5, (clampedHR - currentRhr) / hrr)) : 0;
 
           let epocKcal = 0;
           
@@ -129,8 +135,8 @@ export class CalculatorService {
             durFactor = EPOC_DURATION_MODEL.MAX_FACTOR;
           }
 
-          // 3. Final Calculation (Strictly on Net calories)
-          epocKcal = netWorkoutKcal * ratio * durFactor;
+          // 3. Final Calculation (Strictly on Net calories, with Negative Defense)
+          epocKcal = Math.max(0, netWorkoutKcal * ratio * durFactor);
 
           res.eat += netWorkoutKcal;
           res.epoc += epocKcal;
