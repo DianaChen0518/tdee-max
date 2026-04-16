@@ -21,8 +21,8 @@ export const BMR_CONSTANTS = {
 export const THERMIC_EFFECT_OF_FOOD_RATIO = 0.1;
 
 export const NEAT_CONSTANTS = {
-  CALORIES_PER_STEP: 0.04, // Approximation: 10000 steps ~= 400 kcal
-  WEIGHT_COEFFICIENT: 0.0005 // Extra burn based on body mass
+  CALORIES_PER_STEP: 0.035, // More conservative: 10000 steps ~= 350-500 kcal depending on weight
+  WEIGHT_COEFFICIENT: 0.00045 // Adjusted downward based on engineering review
 };
 
 /**

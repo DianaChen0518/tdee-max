@@ -161,9 +161,18 @@ export class CalculatorService {
     const neat = this.calculateNEAT(data.weight, data.steps || 0);
     const { eat, epoc } = this.calculateEAT(data.workouts || [], data.weight, age, profile.gender, profile.rhr || 70, bmr);
     
-    const tef = bmr * THERMIC_EFFECT_OF_FOOD_RATIO;
-    const tdee = bmr + tef + neat + eat + epoc;
     const intake = (data.foods || []).reduce((sum, f) => sum + (f.cals * (f.multiplier || 1)), 0);
+
+    // TEF (Thermic Effect of Food) - Corrected Physiology:
+    // Based on actual intake if recorded, otherwise on estimated expenditure.
+    let tef = 0;
+    if (intake > 0) {
+      tef = intake * THERMIC_EFFECT_OF_FOOD_RATIO;
+    } else {
+      tef = (bmr + neat + eat) * THERMIC_EFFECT_OF_FOOD_RATIO;
+    }
+    
+    const tdee = bmr + tef + neat + eat + epoc;
     const deficit = tdee - intake;
 
     return {

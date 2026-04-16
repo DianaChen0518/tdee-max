@@ -27,10 +27,10 @@
 基于步数和自身体重的功耗模型。
 
 ### 计算公式
-$NEAT = Steps \times (0.04 + 0.0005 \times W)$
+$NEAT = Steps \times (0.035 + 0.00045 \times W)$
 
-- **0.04**: 基础步数热量系数。
-- **0.0005**: 体重代偿系数（考虑克服重力所需的额外功）。
+- **0.035**: 修正后的基础步数热量系数（保守估算）。
+- **0.00045**: 修正后的体重代偿系数。
 
 ---
 
@@ -42,8 +42,9 @@ $NEAT = Steps \times (0.04 + 0.0005 \times W)$
 - **公式 (毛能耗)**:
   - **男**: $(-55.0969 + 0.6309 \times HR + 0.1988 \times W + 0.2017 \times A) / 4.184$
   - **女**: $(-20.4022 + 0.4472 \times HR - 0.1263 \times W + 0.0740 \times A) / 4.184$
+  - ⚠️ **单位注意**: 以上公式结果单位为 **kcal/min**。
 - **公式 (净能耗)**:
-  $Net\_EAT = Gross\_EAT - (BMR / 1440) \times Duration$
+  $Net\_EAT = (Gross\_EAT_{per\_min} \times Duration) - (BMR / 1440) \times Duration$
 
 ### B. 无氧/阻力训练 (MET 模型)
 - **公式**:
@@ -82,15 +83,18 @@ $EPOC = Net\_EAT \times Intensity\_Ratio \times Duration\_Factor$
 ---
 
 ## 5. 食物热效应 (TEF)
-$TEF = BMR \times 10\%$
-(注: 采用 BMR 基数的 10% 作为混合膳食的平均消化能耗支出)。
+TEF 指消化、吸收食物所需的能量支出，占摄入能量的 5%~15%（平均 10%）。
+
+### 计算路径
+- **路径 A (有饮食记录)**: $TEF = 0.10 \times Daily\_Intake\_Calories$
+- **路径 B (无饮食记录)**: $TEF = 0.10 \times (BMR + NEAT + \sum Net\_EAT)$
 
 ---
 
 ## 6. 总能量消耗 (TDEE) 总公式
-系统每日结算的总能量支出的顶层逻辑：
+$$TDEE_{day} = BMR + TEF + NEAT + \sum(Net\_EAT_i) + \sum(EPOC_i)$$
 
-$$TDEE = BMR + TEF + NEAT + Net\_EAT + EPOC$$
+> **日结算原则**: 系统按日聚合多次运动的净消耗与后燃效应。
 
 ---
 

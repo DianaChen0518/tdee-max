@@ -49,7 +49,7 @@ const handleDelete = () => {
         <div class="flex justify-between text-xs font-medium text-slate-600 dark:text-slate-300">
           <div class="flex items-center gap-1">
             <span>EPOC (后燃效应)</span>
-            <span class="text-[9px] text-slate-400 font-normal"> (±25% 误差)</span>
+            <span class="text-[9px] text-slate-400 font-normal"> (±20%~25% 误差)</span>
           </div>
           <span class="font-bold text-emerald-600 dark:text-emerald-400">
             + {{ store.epocCalories }} <span class="text-[10px] text-emerald-600/60 font-normal">kcal</span>
