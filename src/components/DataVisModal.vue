@@ -20,7 +20,7 @@ const rawRecords = computed(() => {
   for (const [date, data] of Object.entries(store.database)) {
     // 只有真正在记账的日子才算进去
     if (data.weight > 0 || data.steps > 0 || data.foods.length > 0 || data.workouts.length > 0) {
-      const summary = CalculatorService.calculateDailySummary(data, store.userProfile);
+      const summary = CalculatorService.calculateDailySummary(data, store.userProfile, date);
       records.push({ date, weight: data.weight, tdee: summary.tdee, intake: summary.intake, deficit: summary.deficit });
     }
   }

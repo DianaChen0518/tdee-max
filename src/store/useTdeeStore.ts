@@ -52,11 +52,11 @@ export const useTdeeStore = defineStore('tdee', () => {
    * Comprehensive metabolic metrics for the selected day.
    */
   const summary = computed((): DailySummaryMetrics => {
-    return CalculatorService.calculateDailySummary(activeDay.value, userProfile.value);
+    return CalculatorService.calculateDailySummary(activeDay.value, userProfile.value, selectedDate.value);
   });
 
   // Individual metrics (proxied from summary for backward compatibility and ease of use)
-  const age = computed(() => CalculatorService.calculateAge(userProfile.value.birthDate));
+  const age = computed(() => CalculatorService.calculateAge(userProfile.value.birthDate, selectedDate.value));
   const bmr = computed(() => summary.value.bmr);
   const tefCalories = computed(() => summary.value.tef);
   const stepCalories = computed(() => summary.value.neat);

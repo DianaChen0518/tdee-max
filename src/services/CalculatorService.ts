@@ -10,15 +10,22 @@ export class CalculatorService {
    * @param birthDateStr - Date string in YYYY-MM-DD format.
    * @returns Age in years.
    */
-  public static calculateAge(birthDateStr: string): number {
+  /**
+   * Calculates age in years based on a birth date string.
+   * Accuracy: Fractional years using 365.25 days/yr.
+   * @param birthDateStr - Date string in YYYY-MM-DD format.
+   * @param referenceDateStr - Optional date to calculate age at (defaults to now).
+   * @returns Continuous age in years.
+   */
+  public static calculateAge(birthDateStr: string, referenceDateStr?: string): number {
     if (!birthDateStr) return 0;
     const birth = new Date(birthDateStr);
-    const today = new Date();
-    let age = today.getFullYear() - birth.getFullYear();
-    const m = today.getMonth() - birth.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
+    const refDate = referenceDateStr ? new Date(referenceDateStr) : new Date();
+    
+    // Use precise millisecond difference for continuous age
+    const diffMs = refDate.getTime() - birth.getTime();
+    const age = diffMs / (1000 * 60 * 60 * 24 * 365.25);
+    
     return Math.max(0, age);
   }
 
@@ -104,10 +111,11 @@ export class CalculatorService {
    * Generates a comprehensive summary for a given day.
    * @param data - Daily activity/weight data.
    * @param profile - User physiological profile.
+   * @param dateStr - Optional ISO date string (YYYY-MM-DD) for historical accuracy.
    * @returns A complete set of metabolic metrics.
    */
-  public static calculateDailySummary(data: DayData, profile: UserProfile): DailySummaryMetrics {
-    const age = this.calculateAge(profile.birthDate);
+  public static calculateDailySummary(data: DayData, profile: UserProfile, dateStr?: string): DailySummaryMetrics {
+    const age = this.calculateAge(profile.birthDate, dateStr);
     const bmr = this.calculateBMR(data.weight, profile.heightCm, age, profile.gender);
     
     // Total Daily Energy Expenditure (TDEE)
