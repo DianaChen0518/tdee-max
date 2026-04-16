@@ -1,11 +1,11 @@
 import * as XLSX from 'xlsx';
-import { calculateDailySummary } from './formulas';
+import { CalculatorService } from '../services/CalculatorService';
 import { getLocalYYYYMMDD } from '../store/useTdeeStore';
 import { Database, UserProfile } from '../types';
 
-export const exportTdeeData = (database: Database, userProfile: UserProfile, age: number) => {
+export const exportTdeeData = (database: Database, userProfile: UserProfile) => {
   const exportData = Object.entries(database).map(([date, data]) => {
-    const summary = calculateDailySummary(data, userProfile, age);
+    const summary = CalculatorService.calculateDailySummary(data, userProfile);
 
     return {
       "日期": date,

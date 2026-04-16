@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useTdeeStore } from '../store/useTdeeStore';
-import { calculateDailySummary } from '../utils/formulas';
+import { CalculatorService } from '../services/CalculatorService';
 import {
   Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler
 } from 'chart.js';
@@ -20,7 +20,7 @@ const rawRecords = computed(() => {
   for (const [date, data] of Object.entries(store.database)) {
     // 只有真正在记账的日子才算进去
     if (data.weight > 0 || data.steps > 0 || data.foods.length > 0 || data.workouts.length > 0) {
-      const summary = calculateDailySummary(data, store.userProfile, store.age);
+      const summary = CalculatorService.calculateDailySummary(data, store.userProfile);
       records.push({ date, weight: data.weight, tdee: summary.tdee, intake: summary.intake, deficit: summary.deficit });
     }
   }

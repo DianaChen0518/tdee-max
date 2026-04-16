@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useTdeeStore } from '../store/useTdeeStore';
-import { calculateDailySummary } from '../utils/formulas';
+import { CalculatorService } from '../services/CalculatorService';
 
 const store = useTdeeStore();
 const emit = defineEmits(['close']);
@@ -16,7 +16,7 @@ const monthlyRecords = computed(() => {
     // 筛选出属于选中月份的记录
     if (date.startsWith(selectedMonth.value)) {
       // 使用工厂函数严谨计算历史那一天的真实数据
-      const summary = calculateDailySummary(data, store.userProfile, store.age);
+      const summary = CalculatorService.calculateDailySummary(data, store.userProfile);
 
       // 只有真正在记账的日子才算进去（有体重、有步数或有吃东西）
       if (data.weight > 0 || data.steps > 0 || data.foods.length > 0 || data.workouts.length > 0) {

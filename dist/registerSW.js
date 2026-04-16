@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/tdee-max/sw.js', { scope: '/tdee-max/' })})}
