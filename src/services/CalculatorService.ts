@@ -3,8 +3,8 @@ import {
   BMR_CONSTANTS, 
   THERMIC_EFFECT_OF_FOOD_RATIO, 
   NEAT_CONSTANTS, 
-  EPOC_DYNAMIC_MODEL, 
-  EPOC_DURATION_THRESHOLD_MINS,
+  EPOC_SEGMENTS,
+  EPOC_DURATION_MODEL,
   AEROBIC_FORMULA_CONSTANTS,
   MET_VALUES,
   MAX_HR_TANAKA
@@ -108,12 +108,29 @@ export class CalculatorService {
           const pctHRR = hrr > 0 ? (hr - (rhr || 70)) / hrr : 0;
 
           let epocKcal = 0;
-          if (totalMins >= EPOC_DURATION_THRESHOLD_MINS) {
-            // Dynamic Model: Multiplier = 0.24 * (%HRR ^ 2.2)
-            const dynamicMultiplier = EPOC_DYNAMIC_MODEL.COEFFICIENT * Math.pow(pctHRR, EPOC_DYNAMIC_MODEL.EXPONENT);
-            // Apply multiplier ONLY to Net calories (Gross - BMR slice)
-            epocKcal = netWorkoutKcal * dynamicMultiplier;
+          
+          // 1. Calculate Intensity Multiplier (3-Segment Linear Model)
+          let ratio = 0;
+          if (pctHRR < EPOC_SEGMENTS.LOW.threshold) {
+            ratio = EPOC_SEGMENTS.LOW.base + EPOC_SEGMENTS.LOW.slope * pctHRR;
+          } else if (pctHRR < EPOC_SEGMENTS.MODERATE.threshold) {
+            ratio = EPOC_SEGMENTS.MODERATE.base + EPOC_SEGMENTS.MODERATE.slope * (pctHRR - EPOC_SEGMENTS.LOW.threshold);
+          } else {
+            ratio = EPOC_SEGMENTS.HIGH.base + EPOC_SEGMENTS.HIGH.slope * (pctHRR - EPOC_SEGMENTS.MODERATE.threshold);
           }
+
+          // 2. Calculate Duration Scaling Factor
+          let durFactor = 1.0;
+          if (totalMins < EPOC_DURATION_MODEL.SHORT_MIN) {
+            durFactor = EPOC_DURATION_MODEL.SHORT_BASE + EPOC_DURATION_MODEL.SHORT_SLOPE * (totalMins / EPOC_DURATION_MODEL.SHORT_MIN);
+          } else if (totalMins < EPOC_DURATION_MODEL.LONG_MIN) {
+            durFactor = EPOC_DURATION_MODEL.LONG_BASE + EPOC_DURATION_MODEL.LONG_SLOPE * ((totalMins - EPOC_DURATION_MODEL.SHORT_MIN) / (EPOC_DURATION_MODEL.LONG_MIN - EPOC_DURATION_MODEL.SHORT_MIN));
+          } else {
+            durFactor = EPOC_DURATION_MODEL.MAX_FACTOR;
+          }
+
+          // 3. Final Calculation (Strictly on Net calories)
+          epocKcal = netWorkoutKcal * ratio * durFactor;
 
           res.eat += netWorkoutKcal;
           res.epoc += epocKcal;

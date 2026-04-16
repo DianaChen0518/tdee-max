@@ -135,7 +135,7 @@ const restoreData = async () => {
           <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">静息心率 (RHR)</label>
           <input type="number" v-model.number="store.userProfile.rhr" placeholder="默认 70" class="w-full bg-gray-50 dark:bg-[#2c2c2c] border border-gray-300 dark:border-[#444] rounded-lg p-2 text-gray-800 dark:text-white outline-none focus:border-green-500 transition-colors">
           <p class="text-[10px] text-gray-400 mt-1 leading-relaxed">
-            💡 基于 Tanaka 公式精确推导储备心率 (HRR)。当运动持续 >20 分钟时，系统将基于“净运动消耗”通过动态非线性模型 (Non-linear Dynamic Model) 自动计算 0% - 24% 的后燃效应 (EPOC) 补偿，消除数值跳变。
+            💡 基于 Tanaka 公式精确推导储备心率 (HRR)。后燃效应 (EPOC) 采用三段线性强度模型 + 时长修正因子 (0.7x - 1.1x) 计算，确保短时运动有补偿，长时运动有增益。
           </p>
         </div>
         <div>
