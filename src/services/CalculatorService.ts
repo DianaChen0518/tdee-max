@@ -97,14 +97,24 @@ export class CalculatorService {
           }
           let workoutKcal = kcalPerMin * totalMins;
 
-          // --- EPOC (Afterburn Effect) Logic ---
+          // --- EPOC (Afterburn Effect) Tiered Multiplier Logic ---
           const maxHR = 220 - age;
           const hrr = Math.max(0, maxHR - rhr);
-          const epocThreshold = (hrr * 0.75) + rhr;
+          const pctHRR = hrr > 0 ? (hr - rhr) / hrr : 0;
 
           let epocKcal = 0;
-          if (hr >= epocThreshold && totalMins >= 20) {
-            epocKcal = workoutKcal * 0.1; // 10% bonus
+          if (totalMins >= 20) {
+            let multiplier = 0;
+            if (pctHRR < 0.50) {
+              multiplier = 0.02; // Range 1: Low Intensity
+            } else if (pctHRR < 0.70) {
+              multiplier = 0.07; // Range 2: Moderate Intensity
+            } else if (pctHRR < 0.85) {
+              multiplier = 0.14; // Range 3: High Intensity
+            } else {
+              multiplier = 0.20; // Range 4: Anaerobic / Peak
+            }
+            epocKcal = workoutKcal * multiplier;
           }
 
           res.eat += Math.max(0, workoutKcal);
