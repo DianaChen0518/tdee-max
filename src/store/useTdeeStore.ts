@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue';
 import { useStorage } from '@vueuse/core';
 import { UserProfile, Database, DayData, Food, RecipeCombo, DailySummaryMetrics } from '../types';
 import { CalculatorService } from '../services/CalculatorService';
+import { DayManager } from '../utils/day-manager';
 
 /**
  * Utility to get YYYY-MM-DD in local timezone.
@@ -14,6 +15,7 @@ export const getLocalYYYYMMDD = (d: Date): string => {
 
 /**
  * Main TDEE Store for managing user profile, food database, and daily logs.
+ * Follows an enterprise-grade setup with logic decoupled into Services/Utils.
  */
 export const useTdeeStore = defineStore('tdee', () => {
   // --- Persistent State ---
@@ -37,7 +39,7 @@ export const useTdeeStore = defineStore('tdee', () => {
   const githubToken = useStorage<string>('tdee_github_token', '');
   const gistId = useStorage<string>('tdee_gist_id', '');
 
-  // --- Reactive State ---
+  // --- Reactive UI State ---
   const selectedDate = ref(getLocalYYYYMMDD(new Date()));
 
   // --- Computed Views ---
@@ -49,14 +51,11 @@ export const useTdeeStore = defineStore('tdee', () => {
     return database.value[selectedDate.value] || { weight: 0, steps: 0, workouts: [], foods: [] };
   });
 
-  /**
-   * Comprehensive metabolic metrics for the selected day.
-   */
   const summary = computed((): DailySummaryMetrics => {
     return CalculatorService.calculateDailySummary(activeDay.value, userProfile.value, selectedDate.value);
   });
 
-  // Individual metrics (proxied from summary for backward compatibility and ease of use)
+  // Individual derived metrics
   const age = computed(() => CalculatorService.calculateAge(userProfile.value.birthDate, selectedDate.value));
   const bmr = computed(() => summary.value.bmr);
   const tefCalories = computed(() => summary.value.tef);
@@ -69,21 +68,13 @@ export const useTdeeStore = defineStore('tdee', () => {
 
   // --- Actions ---
 
-  /**
-   * Ensures a day record exists in the database.
-   */
   const initDayIfNotExists = (dateStr: string) => {
     if (!database.value[dateStr]) {
-      let defaultWeight = 0;
-      const pastDates = Object.keys(database.value).filter(d => d < dateStr).sort();
-      if (pastDates.length > 0) {
-        defaultWeight = database.value[pastDates[pastDates.length - 1]].weight;
-      }
-      database.value[dateStr] = { weight: defaultWeight, steps: 0, workouts: [], foods: [] };
+      database.value[dateStr] = DayManager.initDay(database.value, dateStr);
     }
   };
 
-  // Keep database initialized for the selected date
+  // Lifecycle Sync
   watch(selectedDate, (newDate) => {
     initDayIfNotExists(newDate);
   }, { immediate: true });
@@ -105,10 +96,11 @@ export const useTdeeStore = defineStore('tdee', () => {
   const copyYesterdayDiet = () => {
     const pastDates = Object.keys(database.value)
       .filter(d => d < selectedDate.value && database.value[d].foods.length > 0)
-      .sort();
+      .sort((a, b) => b.localeCompare(a));
+    
     if (pastDates.length > 0) {
-      const lastFoodDay = database.value[pastDates[pastDates.length - 1]];
-      activeDay.value.foods = lastFoodDay.foods.map(f => ({ ...f }));
+      const lastFoodDay = database.value[pastDates[0]];
+      database.value[selectedDate.value].foods = lastFoodDay.foods.map(f => ({ ...f }));
     }
   };
 
@@ -119,25 +111,11 @@ export const useTdeeStore = defineStore('tdee', () => {
     
     initDayIfNotExists(tomorrowStr);
     
-    const foodsToCopy = activeDay.value.foods.filter(f => (f.mealType || 'uncategorized') === mealType);
-    if (foodsToCopy.length === 0) return;
-    
-    foodsToCopy.forEach(sourceFood => {
-      const targetType = sourceFood.mealType || 'uncategorized';
-      const existing = database.value[tomorrowStr].foods.find(f => 
-        f.name === sourceFood.name && (f.mealType || 'uncategorized') === targetType
-      );
-      
-      const multiplierToAdd = Math.max(1, sourceFood.multiplier || 1);
-      if (existing) {
-        existing.multiplier = (existing.multiplier || 1) + multiplierToAdd;
-      } else {
-        database.value[tomorrowStr].foods.push({ 
-          ...sourceFood, 
-          multiplier: multiplierToAdd 
-        });
-      }
-    });
+    database.value[tomorrowStr].foods = DayManager.copyFoods(
+      activeDay.value.foods,
+      database.value[tomorrowStr].foods,
+      mealType
+    );
   };
 
   return {

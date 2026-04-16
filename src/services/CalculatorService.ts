@@ -1,130 +1,114 @@
 import { Workout, DayData, UserProfile, DailySummaryMetrics } from '../types';
+import { 
+  BMR_CONSTANTS, 
+  THERMIC_EFFECT_OF_FOOD_RATIO, 
+  NEAT_CONSTANTS, 
+  EPOC_TIERS, 
+  EPOC_DURATION_THRESHOLD_MINS,
+  AEROBIC_FORMULA_CONSTANTS,
+  MET_VALUES
+} from '../constants/metabolic';
 
 /**
- * Service class for all energy expenditure and calorie-related calculations.
- * Adheres to standard physiological formulas (Mifflin-St Jeor, Keytel et al., METs).
+ * High-precision metabolic calculation engine.
+ * Implements Mifflin-St Jeor (BMR), Keytel et al. (EAT), and hierarchical EPOC logic.
  */
 export class CalculatorService {
+  
   /**
-   * Calculates age in years based on a birth date string.
-   * @param birthDateStr - Date string in YYYY-MM-DD format.
-   * @returns Age in years.
-   */
-  /**
-   * Calculates age in years based on a birth date string.
-   * Accuracy: Fractional years using 365.25 days/yr.
-   * @param birthDateStr - Date string in YYYY-MM-DD format.
-   * @param referenceDateStr - Optional date to calculate age at (defaults to now).
-   * @returns Continuous age in years.
+   * Calculates age in fractional years with 365.25 day precision.
    */
   public static calculateAge(birthDateStr: string, referenceDateStr?: string): number {
     if (!birthDateStr) return 0;
-    const birth = new Date(birthDateStr);
-    const refDate = referenceDateStr ? new Date(referenceDateStr) : new Date();
     
-    // Use precise millisecond difference for continuous age
-    const diffMs = refDate.getTime() - birth.getTime();
-    const age = diffMs / (1000 * 60 * 60 * 24 * 365.25);
+    const birthDate = new Date(birthDateStr);
+    const referenceDate = referenceDateStr ? new Date(referenceDateStr) : new Date();
     
-    return Math.max(0, age);
+    const diffMs = referenceDate.getTime() - birthDate.getTime();
+    if (diffMs < 0) return 0;
+
+    // Using 365.25 to account for leap years in long-term historical calculations
+    return diffMs / (1000 * 60 * 60 * 24 * 365.25);
   }
 
   /**
-   * Calculates Basal Metabolic Rate (BMR) using the Mifflin-St Jeor Equation.
-   * @param weight - Body weight in kg.
-   * @param height - Height in cm.
-   * @param age - Age in years.
-   * @param gender - 'M' or 'F'.
-   * @returns BMR in kcal/day.
+   * Basal Metabolic Rate using Mifflin-St Jeor equation.
    */
   public static calculateBMR(weight: number, height: number, age: number, gender: 'M' | 'F'): number {
-    if (!weight || !height || age <= 0) return 0;
-    const offset = gender === 'M' ? 5 : -161;
-    return (10 * weight) + (6.25 * height) - (5 * age) + offset;
+    if (!weight || !height || !age) return 0;
+
+    const config = gender === 'M' ? BMR_CONSTANTS.MALES : BMR_CONSTANTS.FEMALES;
+    
+    return (config.WEIGHT_MULT * weight) + 
+           (config.HEIGHT_MULT * height) - 
+           (config.AGE_MULT * age) + 
+           config.OFFSET;
   }
 
   /**
-   * Calculates Non-Exercise Activity Thermogenesis (NEAT) based on step count.
-   * Simplified model: approx 0.045 kcal per step per kg, normalized.
-   * @param weight - Body weight in kg.
-   * @param steps - Daily step count.
-   * @returns NEAT in kcal.
+   * Non-Exercise Activity Thermogenesis (NEAT).
    */
   public static calculateNEAT(weight: number, steps: number): number {
-    if (!weight || !steps || steps < 0) return 0;
-    // Standard approximation for activity-based calorie burn from steps
-    return steps * 0.045 * (weight / 100);
+    if (!weight) return 0;
+    
+    const baseStepBurn = steps * NEAT_CONSTANTS.CALORIES_PER_STEP;
+    const mechanicalEfficiencyOffset = steps * weight * NEAT_CONSTANTS.WEIGHT_COEFFICIENT;
+    
+    return baseStepBurn + mechanicalEfficiencyOffset;
   }
 
   /**
-   * Calculates Exercise Activity Thermogenesis (EAT) based on specific workout records.
-   * @param workouts - Array of workout sessions.
-   * @param weight - Body weight in kg.
-   * @param age - Age in years.
-   * @param gender - 'M' or 'F'.
-   * @param rhr - Resting heart rate in bpm.
-   * @returns An object containing base EAT and EPOC calories.
+   * Exercise Activity Thermogenesis (EAT) and tiered EPOC.
    */
   public static calculateEAT(workouts: Workout[], weight: number, age: number, gender: 'M' | 'F', rhr: number): { eat: number, epoc: number } {
-    if (!weight || !workouts.length) return { eat: 0, epoc: 0 };
+    if (!weight || !workouts || workouts.length === 0) return { eat: 0, epoc: 0 };
 
     return workouts.reduce((res, wo) => {
       const type = wo.type || 'aerobic';
 
-      // Manual input: directly use the value if provided
+      // 1. Manual override
       if (type === 'manual') {
         const kcal = typeof wo.kcal === 'string' ? parseFloat(wo.kcal) : (wo.kcal || 0);
         res.eat += Math.max(0, kcal);
         return res;
       }
 
-      // Calculate total duration in minutes
+      // 2. Duration normalized to minutes
       const mins = typeof wo.mins === 'string' ? parseFloat(wo.mins) : (wo.mins || 0);
       const secs = typeof wo.secs === 'string' ? parseFloat(wo.secs) : (wo.secs || 0);
       const totalMins = Math.max(0, mins + (secs / 60));
       
       if (totalMins <= 0) return res;
 
+      // 3. Calculation based on exercise type
       if (type === 'aerobic') {
-        // Precise Keytel et al. (2005) formula for HR-based calorie burn
         const hr = typeof wo.hr === 'string' ? parseFloat(wo.hr) : (wo.hr || 0);
+        
+        // Keytel et al. HR threshold
         if (hr > 80) {
-          let kcalPerMin = 0;
-          if (gender === 'M') {
-            kcalPerMin = (-55.0969 + 0.6309 * hr + 0.1988 * weight + 0.2017 * age) / 4.184;
-          } else {
-            kcalPerMin = (-20.4022 + 0.4472 * hr - 0.1263 * weight + 0.0740 * age) / 4.184;
-          }
-          let workoutKcal = kcalPerMin * totalMins;
+          const config = gender === 'M' ? AEROBIC_FORMULA_CONSTANTS.MALES : AEROBIC_FORMULA_CONSTANTS.FEMALES;
+          
+          const kcalPerMin = (config.INTERCEPT + config.HR_MULT * hr + config.WEIGHT_MULT * weight + config.AGE_MULT * age) / config.DIVISOR;
+          const workoutKcal = Math.max(0, kcalPerMin * totalMins);
 
-          // --- EPOC (Afterburn Effect) Tiered Multiplier Logic ---
+          // EPOC Tiered Model
           const maxHR = 220 - age;
-          const hrr = Math.max(0, maxHR - rhr);
-          const pctHRR = hrr > 0 ? (hr - rhr) / hrr : 0;
+          const hrr = Math.max(0, maxHR - (rhr || 70));
+          const pctHRR = hrr > 0 ? (hr - (rhr || 70)) / hrr : 0;
 
           let epocKcal = 0;
-          if (totalMins >= 20) {
-            let multiplier = 0;
-            if (pctHRR < 0.50) {
-              multiplier = 0.02; // Range 1: Low Intensity
-            } else if (pctHRR < 0.70) {
-              multiplier = 0.07; // Range 2: Moderate Intensity
-            } else if (pctHRR < 0.85) {
-              multiplier = 0.14; // Range 3: High Intensity
-            } else {
-              multiplier = 0.20; // Range 4: Anaerobic / Peak
-            }
-            epocKcal = workoutKcal * multiplier;
+          if (totalMins >= EPOC_DURATION_THRESHOLD_MINS) {
+            const tier = EPOC_TIERS.find(t => pctHRR < t.threshold) || EPOC_TIERS[EPOC_TIERS.length - 1];
+            epocKcal = workoutKcal * tier.multiplier;
           }
 
-          res.eat += Math.max(0, workoutKcal);
-          res.epoc += Math.max(0, epocKcal);
+          res.eat += workoutKcal;
+          res.epoc += epocKcal;
         }
       } else if (type === 'anaerobic') {
-        // MET-based calculation for resistance training
-        const met = wo.intensity === 'high' ? 7.0 : (wo.intensity === 'low' ? 3.5 : 5.0);
-        const kcal = met * weight * (totalMins / 60);
-        res.eat += Math.max(0, kcal);
+        const met = wo.intensity === 'high' ? MET_VALUES.RESISTANCE_HIGH : (wo.intensity === 'low' ? MET_VALUES.RESISTANCE_LOW : MET_VALUES.RESISTANCE_MEDIUM);
+        const workoutKcal = met * weight * (totalMins / 60);
+        res.eat += Math.max(0, workoutKcal);
       }
 
       return res;
@@ -133,23 +117,22 @@ export class CalculatorService {
 
   /**
    * Generates a comprehensive summary for a given day.
-   * @param data - Daily activity/weight data.
-   * @param profile - User physiological profile.
-   * @param dateStr - Optional ISO date string (YYYY-MM-DD) for historical accuracy.
-   * @returns A complete set of metabolic metrics.
    */
   public static calculateDailySummary(data: DayData, profile: UserProfile, dateStr?: string): DailySummaryMetrics {
     const age = this.calculateAge(profile.birthDate, dateStr);
+    
+    // Safety check for critical metrics
+    if (!data.weight || data.weight <= 0) {
+      return this.emptySummary();
+    }
+
     const bmr = this.calculateBMR(data.weight, profile.heightCm, age, profile.gender);
+    const neat = this.calculateNEAT(data.weight, data.steps || 0);
+    const { eat, epoc } = this.calculateEAT(data.workouts || [], data.weight, age, profile.gender, profile.rhr || 70);
     
-    // Total Daily Energy Expenditure (TDEE)
-    // Formula: BMR + TEF + NEAT + EAT + EPOC
-    const neat = this.calculateNEAT(data.weight, data.steps);
-    const { eat, epoc } = this.calculateEAT(data.workouts, data.weight, age, profile.gender, profile.rhr);
-    
-    const tef = bmr * 0.1;
+    const tef = bmr * THERMIC_EFFECT_OF_FOOD_RATIO;
     const tdee = bmr + tef + neat + eat + epoc;
-    const intake = data.foods.reduce((sum, f) => sum + (f.cals * (f.multiplier || 1)), 0);
+    const intake = (data.foods || []).reduce((sum, f) => sum + (f.cals * (f.multiplier || 1)), 0);
     const deficit = tdee - intake;
 
     return {
@@ -162,5 +145,9 @@ export class CalculatorService {
       intake: Math.round(intake),
       deficit: Math.round(deficit)
     };
+  }
+
+  private static emptySummary(): DailySummaryMetrics {
+    return { bmr: 0, neat: 0, eat: 0, epoc: 0, tef: 0, tdee: 0, intake: 0, deficit: 0 };
   }
 }
