@@ -28,7 +28,7 @@ export class GistService {
           'Accept': 'application/vnd.github.v3+json'
         },
         body: JSON.stringify({
-          description: "TDEE Tracker Cloud Backup (Automated)",
+          description: "TDEE Max Cloud Backup (Automated)",
           public: false,
           files: {
             [this.FILENAME]: {

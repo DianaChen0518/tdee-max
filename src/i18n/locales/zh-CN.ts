@@ -1,6 +1,6 @@
 export default {
   header: {
-    title: '科学 TDEE 管理',
+    title: 'TDEE Max',
     audit: '报表中心',
     datavis: '动态观测',
     settings: '设置',

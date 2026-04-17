@@ -1,5 +1,5 @@
 /**
- * Centralized Date Utilities for TDEE Tracker.
+ * Centralized Date Utilities for TDEE Max.
  * Ensures consistent timezone handling and formatting.
  */
 export class DateUtils {

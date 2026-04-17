@@ -1,6 +1,6 @@
-# TDEE Tracker 代谢计算引擎技术协议 (Metabolic Protocol)
+# TDEE Max 代谢计算引擎技术协议 (Metabolic Protocol)
 
-本文件详细记录了 TDEE Tracker 内部所采用的所有生理代谢计算公式、科学依据及逻辑推导过程。
+本文件详细记录了 TDEE Max 内部所采用的所有生理代谢计算公式、科学依据及逻辑推导过程。
 
 ---
 

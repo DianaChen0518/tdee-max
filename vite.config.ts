@@ -12,8 +12,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg}']
       },
       manifest: {
-        name: 'TDEE Tracker Pro',
-        short_name: 'TDEE',
+        name: 'TDEE Max',
+        short_name: 'TDEE Max',
         description: '科学极简的 TDEE 饮食与消耗追踪器',
         theme_color: '#1e1e1e',
         background_color: '#ffffff',

@@ -1,6 +1,6 @@
 export default {
   header: {
-    title: 'Scientific TDEE Manager',
+    title: 'TDEE Max',
     audit: 'Reports',
     datavis: 'Dynamic Analytics',
     settings: 'Settings',
