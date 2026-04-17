@@ -18,7 +18,8 @@
 
 body {
   /* 让 body 自动适应白天和黑夜的底色 */
-  @apply bg-gray-100 dark:bg-[#121212] text-gray-900 dark:text-white min-h-screen transition-colors duration-300;
+  @apply bg-gray-100 dark:bg-[#121212] text-gray-900 dark:text-white min-h-screen;
+  transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 input[type=number]::-webkit-inner-spin-button, 
 input[type=number]::-webkit-outer-spin-button { 
@@ -56,6 +57,20 @@ input[type=number]::-webkit-outer-spin-button {
     @apply btn-header bg-emerald-50 hover:bg-emerald-100 text-emerald-700 
            dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 dark:text-emerald-300;
   }
+}
+
+/* Global Theme Transition - Ensures everything morphs smoothly during mode switch */
+* {
+  transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
+              border-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
+              color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              fill 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              stroke 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Allow faster interaction transitions to override the global one */
+.transition-all, .transition-colors, .active\:scale-95:active {
+  transition-duration: 0.2s !important;
 }
 
 /* --- Vue Transitions --- */
