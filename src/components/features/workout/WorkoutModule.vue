@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { useTdeeStore } from '../../../store/useTdeeStore';
 import { useI18n } from 'vue-i18n';
+import { HapticUtils } from '../../../utils/HapticUtils';
 
 const store = useTdeeStore();
 const { t } = useI18n();
 
 const addWorkoutRecord = () => {
+  HapticUtils.lightTick();
   store.activeDay.workouts.push({
     type: 'aerobic', hr: 0, mins: 0, secs: 0, intensity: 'med', kcal: 0
   });
@@ -22,17 +24,9 @@ const addWorkoutRecord = () => {
     </div>
     
     <div class="overflow-y-auto custom-scrollbar flex-1 pr-1">
-      <transition-group 
-        name="list" 
-        tag="div" 
-        enter-active-class="transition-all duration-300" 
-        leave-active-class="transition-all duration-300 absolute" 
-        enter-from-class="opacity-0 -translate-y-4" 
-        leave-to-class="opacity-0 scale-95" 
-        move-class="transition-transform duration-300"
-      >
+      <transition-group name="list" tag="div">
         <div v-for="(wo, i) in store.activeDay.workouts" :key="i" class="bg-gray-50 dark:bg-[#252525] p-4 rounded-inner border border-gray-200 dark:border-[#333] mb-3 relative transition-all duration-300 w-full overflow-hidden">
-          <button @click="store.activeDay.workouts.splice(i,1)" class="absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors z-10 p-1">✕</button>
+          <button @click="HapticUtils.lightTick(); store.activeDay.workouts.splice(i,1)" class="absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors z-10 p-1">✕</button>
         
           <div class="flex flex-col gap-3">
             <!-- Type Selector -->

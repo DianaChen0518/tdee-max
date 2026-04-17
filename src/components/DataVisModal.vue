@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import { useTdeeStore } from '../store/useTdeeStore';
 import { ReportingService } from '../services/ReportingService';
 import { useI18n } from 'vue-i18n';
+import { HapticUtils } from '../utils/HapticUtils';
 import {
   Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler
 } from 'chart.js';
@@ -88,12 +89,15 @@ const summaryStats = computed(() => {
   return ReportingService.aggregateStats(chartRecords.value);
 });
 
-const setRange = (val: '7' | '30' | 'all') => { timeRange.value = val; };
+const setRange = (val: '7' | '30' | 'all') => { 
+  HapticUtils.lightTick();
+  timeRange.value = val; 
+};
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-black/60 dark:bg-black/80 flex justify-center items-center z-50 backdrop-blur-md p-4" @click.self="emit('close')">
-    <div class="bg-white dark:bg-[#121212] p-6 rounded-card border border-gray-100 dark:border-[#333] w-full max-w-5xl shadow-premium transition-all flex flex-col h-[95vh] md:h-[90vh] scale-in">
+  <div class="fixed inset-0 bg-black/60 dark:bg-black/80 flex justify-center items-center z-50 backdrop-blur-md p-4" @click.self="HapticUtils.lightTick(); emit('close')">
+    <div class="bg-white dark:bg-[#121212] p-6 rounded-card border border-gray-100 dark:border-[#333] w-full max-w-5xl shadow-premium transition-all flex flex-col h-[95vh] md:h-[90vh]">
       
       <!-- Header -->
       <div class="flex flex-wrap justify-between items-center mb-6 shrink-0 gap-4">
@@ -111,7 +115,7 @@ const setRange = (val: '7' | '30' | 'all') => { timeRange.value = val; };
             {{ t('datavis.ranges.all') }}
           </button>
         </div>
-        <button @click="emit('close')" class="text-gray-500 hover:text-red-500 transition-colors bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-btn font-bold text-sm">
+        <button @click="HapticUtils.lightTick(); emit('close')" class="text-gray-500 hover:text-red-500 transition-colors bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-btn font-bold text-sm">
           {{ t('datavis.close') }}
         </button>
       </div>
@@ -183,11 +187,4 @@ const setRange = (val: '7' | '30' | 'all') => { timeRange.value = val; };
 </template>
 
 <style scoped>
-.scale-in {
-  animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
 </style>

@@ -99,8 +99,12 @@ const handleExport = () => {
     </div>
     
     <!-- Modals -->
-    <SettingsModal v-if="showSettings" @close="showSettings = false" />
-    <DataVisModal v-if="showDataVis" @close="showDataVis = false" />
+    <Transition name="fade-scale">
+      <SettingsModal v-if="showSettings" @close="showSettings = false" />
+    </Transition>
+    <Transition name="fade-scale">
+      <DataVisModal v-if="showDataVis" @close="showDataVis = false" />
+    </Transition>
   </div>
 </template>
 

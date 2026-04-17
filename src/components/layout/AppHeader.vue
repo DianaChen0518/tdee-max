@@ -4,6 +4,7 @@ import { useTdeeStore } from '../../store/useTdeeStore';
 import { useDark, useToggle } from '@vueuse/core';
 import { DateUtils } from '../../utils/DateUtils';
 import { useI18n } from 'vue-i18n';
+import { HapticUtils } from '../../utils/HapticUtils';
 
 const emit = defineEmits(['open-settings', 'open-datavis']);
 
@@ -20,13 +21,13 @@ const isToday = computed(() => store.selectedDate === DateUtils.getLocalYYYYMMDD
     <h1 class="text-xl font-bold flex flex-wrap items-center gap-2 mb-4 md:mb-0 text-gray-800 dark:text-white">
       📅 {{ t('header.title') }}
       <div class="flex flex-wrap gap-2 ml-2 items-center">
-        <button @click="emit('open-datavis')" class="btn-header-blue">
+        <button @click="HapticUtils.lightTick(); emit('open-datavis')" class="btn-header-blue">
           📊 {{ t('header.datavis') }}
         </button>
-        <button @click="emit('open-settings')" class="btn-header-gray">
+        <button @click="HapticUtils.lightTick(); emit('open-settings')" class="btn-header-gray">
           ⚙️ {{ t('header.settings') }}
         </button>
-        <button @click="toggleDark()" class="btn-header-gray">
+        <button @click="HapticUtils.lightTick(); toggleDark()" class="btn-header-gray">
           {{ isDark ? '☀️ ' + t('header.light') : '🌙 ' + t('header.dark') }}
         </button>
       </div>
@@ -34,7 +35,7 @@ const isToday = computed(() => store.selectedDate === DateUtils.getLocalYYYYMMDD
 
     <div class="flex items-center gap-3">
       <button 
-        @click="store.changeDate(-1)" 
+        @click="HapticUtils.lightTick(); store.changeDate(-1)" 
         class="bg-gray-100 dark:bg-[#2c2c2c] hover:bg-gray-200 dark:hover:bg-[#3c3c3c] px-4 py-2 rounded-btn transition-colors"
       >
         ←
@@ -47,7 +48,7 @@ const isToday = computed(() => store.selectedDate === DateUtils.getLocalYYYYMMDD
       >
       
       <button 
-        @click="store.changeDate(1)" 
+        @click="HapticUtils.lightTick(); store.changeDate(1)" 
         :disabled="isToday" 
         :class="['px-4 py-2 rounded-btn transition-colors', isToday ? 'bg-gray-50 dark:bg-[#1a1a1a] text-gray-400 dark:text-gray-600 cursor-not-allowed' : 'bg-gray-100 dark:bg-[#2c2c2c] hover:bg-gray-200 dark:hover:bg-[#3c3c3c]']"
       >
@@ -55,7 +56,7 @@ const isToday = computed(() => store.selectedDate === DateUtils.getLocalYYYYMMDD
       </button>
       
       <button 
-        @click="store.goToToday" 
+        @click="HapticUtils.lightTick(); store.goToToday()" 
         v-if="!isToday" 
         class="text-sm text-green-600 dark:text-green-400 hover:text-green-500 dark:hover:text-green-300 ml-2 font-bold transition-colors"
       >

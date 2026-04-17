@@ -4,6 +4,7 @@ import { useTdeeStore } from '../../../store/useTdeeStore';
 import { MealType, Food } from '../../../types';
 import { useNotification } from '../../../composables/useNotification';
 import { useI18n } from 'vue-i18n';
+import { HapticUtils } from '../../../utils/HapticUtils';
 
 const store = useTdeeStore();
 const notify = useNotification();
@@ -31,6 +32,7 @@ const customFood = ref<{ name: string; cals: number | null; unit: 'kcal' | 'kJ' 
 });
 
 const addFoodItemHelper = (name: string, cals: number) => {
+  HapticUtils.lightTick();
   const existing = store.activeDay.foods.find(f => 
     f.name === name && (f.mealType || 'uncategorized') === currentMealType.value
   );
@@ -194,9 +196,9 @@ const groupedFoods = computed(() => {
                 <span class="text-[15px] font-semibold truncate text-slate-800 dark:text-white flex-1 tracking-tight">{{ f.name }}</span>
                 
                 <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-[#1e1e1e] border border-slate-100 dark:border-[#444] rounded-full px-2 py-1 shrink-0">
-                  <button @click="() => { if((f.multiplier || 1) > 1) { f.multiplier = (f.multiplier || 1) - 1; } else { store.activeDay.foods.splice(store.activeDay.foods.indexOf(f), 1); } }" class="text-slate-400 hover:bg-white hover:text-red-500 w-6 h-6 flex items-center justify-center font-bold transition-all">-</button>
+                  <button @click="() => { HapticUtils.lightTick(); if((f.multiplier || 1) > 1) { f.multiplier = (f.multiplier || 1) - 1; } else { store.activeDay.foods.splice(store.activeDay.foods.indexOf(f), 1); } }" class="text-slate-400 hover:bg-white hover:text-red-500 w-6 h-6 flex items-center justify-center font-bold transition-all">-</button>
                   <span class="text-[13px] font-bold text-slate-700 dark:text-slate-200 w-5 text-center">{{ f.multiplier || 1 }}</span>
-                  <button @click="f.multiplier = (f.multiplier || 1) + 1" class="text-slate-400 hover:bg-white hover:text-emerald-500 w-6 h-6 flex items-center justify-center font-bold transition-all">+</button>
+                  <button @click="HapticUtils.lightTick(); f.multiplier = (f.multiplier || 1) + 1" class="text-slate-400 hover:bg-white hover:text-emerald-500 w-6 h-6 flex items-center justify-center font-bold transition-all">+</button>
                 </div>
 
                 <div class="flex items-center justify-end min-w-[50px] shrink-0">

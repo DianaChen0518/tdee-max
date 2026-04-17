@@ -25,12 +25,31 @@ export class CalculatorService {
     if (!birthDateStr) return 0;
     
     const birthDate = new Date(birthDateStr);
-    const referenceDate = referenceDateStr ? new Date(referenceDateStr) : new Date();
+    const refDate = referenceDateStr ? new Date(referenceDateStr) : new Date();
     
-    const diffMs = referenceDate.getTime() - birthDate.getTime();
-    if (diffMs < 0) return 0;
+    if (refDate < birthDate) return 0;
+    
+    let years = refDate.getFullYear() - birthDate.getFullYear();
+    const birthMonth = birthDate.getMonth();
+    const birthDay = birthDate.getDate();
+    const refMonth = refDate.getMonth();
+    const refDay = refDate.getDate();
 
-    return diffMs / (1000 * 60 * 60 * 24 * 365.25);
+    if (refMonth < birthMonth || (refMonth === birthMonth && refDay < birthDay)) {
+      years--;
+    }
+
+    // Fraction calculation for precision
+    const lastAnniversary = new Date(refDate.getFullYear(), birthMonth, birthDay);
+    if (lastAnniversary > refDate) {
+      lastAnniversary.setFullYear(lastAnniversary.getFullYear() - 1);
+    }
+    
+    const nextAnniversary = new Date(lastAnniversary.getFullYear() + 1, birthMonth, birthDay);
+    const msInYear = nextAnniversary.getTime() - lastAnniversary.getTime();
+    const msSinceAnniversary = refDate.getTime() - lastAnniversary.getTime();
+    
+    return years + (msSinceAnniversary / msInYear);
   }
 
   /**

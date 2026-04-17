@@ -26,6 +26,7 @@ jobs:
         # 这里用 install 代替 ci，因为网页端没有 lock 文件
         run: |
           npm install
+          npm run test
           npm run build
 
       - name: Upload artifact 📡

@@ -57,3 +57,44 @@ input[type=number]::-webkit-outer-spin-button {
            dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 dark:text-emerald-300;
   }
 }
+
+/* --- Vue Transitions --- */
+
+/* 1. Modal Fade Scale */
+.fade-scale-enter-active,
+.fade-scale-leave-active {
+  transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+.fade-scale-enter-from,
+.fade-scale-leave-to {
+  opacity: 0;
+  transform: scale(0.95) translateY(10px);
+}
+
+/* 2. List Transitions (Staggered-like fluidity) */
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+.list-move {
+  transition: transform 0.4s ease;
+}
+
+/* 3. Date Slide Transition */
+.date-slide-enter-active,
+.date-slide-leave-active {
+  transition: all 0.3s ease-out;
+}
+.date-slide-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
+.date-slide-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
+}

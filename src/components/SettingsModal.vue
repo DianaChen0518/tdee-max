@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { useTdeeStore } from '../store/useTdeeStore';
 import { GistService } from '../services/GistService';
 import { useI18n } from 'vue-i18n';
+import { HapticUtils } from '../utils/HapticUtils';
 
 const store = useTdeeStore();
 const { t, locale } = useI18n();
@@ -31,6 +32,7 @@ const syncError = ref('');
 const syncSuccess = ref('');
 
 const backupData = async () => {
+    HapticUtils.lightTick();
     if (!store.githubToken) {
         syncError.value = t('settings.messages.tokenRequired');
         return;
@@ -54,6 +56,7 @@ const backupData = async () => {
 };
 
 const restoreData = async () => {
+    HapticUtils.lightTick();
     if (!store.githubToken || !store.gistId) {
         syncError.value = t('settings.messages.tokenGistRequired');
         return;
@@ -85,8 +88,8 @@ const restoreData = async () => {
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-black/50 dark:bg-black/80 flex justify-center items-center z-50 backdrop-blur-sm p-4 overflow-y-auto" @click.self="handleClose">
-    <div class="bg-white dark:bg-[#1e1e1e] p-6 rounded-card border border-gray-100 dark:border-[#333] w-full max-w-md shadow-premium transition-colors scale-in">
+  <div class="fixed inset-0 bg-black/50 dark:bg-black/80 flex justify-center items-center z-50 backdrop-blur-sm p-4 overflow-y-auto" @click.self="HapticUtils.lightTick(); handleClose()">
+    <div class="bg-white dark:bg-[#1e1e1e] p-6 rounded-card border border-gray-100 dark:border-[#333] w-full max-w-md shadow-premium transition-colors">
       <h2 class="text-xl font-bold mb-2 text-gray-800 dark:text-white flex items-center gap-2">⚙️ {{ t('settings.title') }}</h2>
       
       <p v-if="!store.isConfigured" class="text-xs text-orange-600 dark:text-orange-400 mb-4 bg-orange-100 dark:bg-orange-900/20 p-3 rounded-inner border border-orange-200 dark:border-orange-800/50 font-medium">
@@ -155,7 +158,7 @@ const restoreData = async () => {
       </div>
       
       <button 
-        @click="handleClose" 
+        @click="HapticUtils.lightTick(); handleClose()" 
         :disabled="!isValid" 
         :class="['w-full py-3 mt-6 rounded-btn font-bold transition-all shadow-lg', isValid ? 'bg-green-600 hover:bg-green-500 text-white cursor-pointer transform active:scale-95' : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed shadow-none']"
       >
@@ -166,11 +169,4 @@ const restoreData = async () => {
 </template>
 
 <style scoped>
-.scale-in {
-  animation: scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
 </style>
