@@ -5,7 +5,7 @@ import { useDark, useToggle } from '@vueuse/core';
 import { DateUtils } from '../../utils/DateUtils';
 import { useI18n } from 'vue-i18n';
 
-const emit = defineEmits(['open-settings', 'open-datavis', 'open-monthly']);
+const emit = defineEmits(['open-settings', 'open-datavis']);
 
 const store = useTdeeStore();
 const { t, locale } = useI18n();
@@ -27,9 +27,6 @@ const isToday = computed(() => store.selectedDate === DateUtils.getLocalYYYYMMDD
       <div class="flex flex-wrap gap-2 ml-2 items-center">
         <button @click="emit('open-datavis')" class="btn-header-blue">
           📊 {{ t('header.datavis') }}
-        </button>
-        <button @click="emit('open-monthly')" class="btn-header-indigo">
-          📋 {{ t('header.monthly') }}
         </button>
         <button @click="emit('open-settings')" class="btn-header-gray">
           ⚙️ {{ t('header.settings') }}

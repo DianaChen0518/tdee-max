@@ -2,8 +2,7 @@ export default {
   header: {
     title: 'Scientific TDEE Manager',
     audit: 'Reports',
-    datavis: 'Analytics',
-    monthly: 'Monthly',
+    datavis: 'Dynamic Analytics',
     settings: 'Settings',
     dark: 'Dark',
     light: 'Light',
@@ -158,19 +157,6 @@ export default {
       tdeeLabel: 'TDEE (Consulmed)'
     },
     details: 'Recent Details (Last 7)'
-  },
-  monthly: {
-    title: 'Monthly Audit Report',
-    close: 'Close',
-    deficit: 'Monthly Caloric Deficit',
-    fatChange: 'Theoretical Fat Change',
-    fatLost: 'Lost',
-    fatGained: 'Gained',
-    details: 'Daily Details ({count} records)',
-    empty: 'No records found for this month',
-    weight: 'Weight',
-    tdee: 'TDEE',
-    intake: 'Intake'
   },
   export: {
     sheetName: 'History Records',

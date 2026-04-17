@@ -1,4 +1,5 @@
 import { CalculatorService } from './CalculatorService';
+import { DateUtils } from '../utils/DateUtils';
 import { Database, UserProfile, DayData } from '../types';
 
 /**
@@ -37,8 +38,12 @@ export class ReportingService {
     filter?: (date: string, data: DayData) => boolean
   ): DaySummaryRecord[] {
     const records: DaySummaryRecord[] = [];
+    const today = DateUtils.getLocalYYYYMMDD();
     
     for (const [date, data] of Object.entries(db)) {
+      // Logic fix: Exclude today (and future dates) from statistics to avoid skewed results
+      if (date >= today) continue;
+
       // Apply custom filter if provided
       if (filter && !filter(date, data)) continue;
 

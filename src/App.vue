@@ -16,7 +16,6 @@ import AppNotification from './components/layout/AppNotification.vue';
 // Existing Modals
 import SettingsModal from './components/SettingsModal.vue';
 import DataVisModal from './components/DataVisModal.vue';
-import MonthlyAuditModal from './components/MonthlyAuditModal.vue';
 
 const store = useTdeeStore();
 const notify = useNotification();
@@ -25,7 +24,6 @@ const { t } = useI18n();
 // UI State
 const showSettings = ref(false);
 const showDataVis = ref(false);
-const showMonthly = ref(false);
 
 // Initialization and configuration checks
 onMounted(() => {
@@ -77,7 +75,6 @@ const handleExport = () => {
       <AppHeader 
         @open-settings="showSettings = true" 
         @open-datavis="showDataVis = true"
-        @open-monthly="showMonthly = true"
       />
 
       <main class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 items-start relative">
@@ -104,7 +101,6 @@ const handleExport = () => {
     <!-- Modals -->
     <SettingsModal v-if="showSettings" @close="showSettings = false" />
     <DataVisModal v-if="showDataVis" @close="showDataVis = false" />
-    <MonthlyAuditModal v-if="showMonthly" @close="showMonthly = false" />
   </div>
 </template>
 

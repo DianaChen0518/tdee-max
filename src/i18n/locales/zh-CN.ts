@@ -3,7 +3,6 @@ export default {
     title: '科学 TDEE 管理',
     audit: '报表中心',
     datavis: '动态观测',
-    monthly: '月度审计',
     settings: '设置',
     dark: '黑夜',
     light: '白天',
@@ -158,19 +157,6 @@ export default {
       tdeeLabel: '消耗 (TDEE)'
     },
     details: '明细参考 (近期 7 条)'
-  },
-  monthly: {
-    title: '月度审计报告',
-    close: '关闭',
-    deficit: '本月累计热量缺口',
-    fatChange: '本月理论脂肪变动',
-    fatLost: '消耗',
-    fatGained: '囤积',
-    details: '每日明细 (共 {count} 天记录)',
-    empty: '该月份暂无任何记录',
-    weight: '体重',
-    tdee: '消耗',
-    intake: '摄入'
   },
   export: {
     sheetName: '数据追踪',
