@@ -1,22 +1,18 @@
 import * as XLSX from 'xlsx';
-import { CalculatorService } from '../services/CalculatorService';
+import { ReportingService } from '../services/ReportingService';
 import { DateUtils } from './DateUtils';
 import { Database, UserProfile } from '../types';
 
 export const exportTdeeData = (database: Database, userProfile: UserProfile) => {
-  const exportData = Object.entries(database).map(([date, data]) => {
-    const summary = CalculatorService.calculateDailySummary(data, userProfile);
-
-    return {
-      "日期": date,
-      "体重(kg)": data.weight,
-      "步数": data.steps,
-      "运动消耗_EAT(kcal)": Math.round(summary.eat),
-      "总摄入(kcal)": Math.round(summary.intake),
-      "总消耗_TDEE(kcal)": Math.round(summary.tdee),
-      "当日缺口(kcal)": Math.round(summary.deficit)
-    };
-  });
+  const records = ReportingService.getProcessingRecords(database, userProfile);
+  
+  const exportData = records.map(r => ({
+    "日期": r.date,
+    "体重(kg)": r.weight,
+    "总摄入(kcal)": Math.round(r.intake),
+    "总消耗_TDEE(kcal)": Math.round(r.tdee),
+    "当日缺口(kcal)": Math.round(r.deficit)
+  }));
 
   const ws = XLSX.utils.json_to_sheet(exportData);
   const wb = XLSX.utils.book_new();

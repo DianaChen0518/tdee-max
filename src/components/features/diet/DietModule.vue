@@ -2,9 +2,11 @@
 import { ref, computed } from 'vue';
 import { useTdeeStore } from '../../../store/useTdeeStore';
 import { MealType, Food } from '../../../types';
+import { useNotification } from '../../../composables/useNotification';
 
 const store = useTdeeStore();
-const emit = defineEmits(['toast']);
+const notify = useNotification();
+const emit = defineEmits([]);
 
 const getAutoMealType = (): MealType => {
   const hr = new Date().getHours();
@@ -51,14 +53,14 @@ const saveQuickFood = () => {
     store.commonFoods.push({ name: customFood.value.name, cals: finalCals });
     customFood.value.name = ''; 
     customFood.value.cals = null;
-    emit('toast', '✅ 已存入快捷库');
+    notify.success('已存入快捷库');
   }
 };
 
 const saveCombo = (mealType: string) => {
   const foods = store.activeDay.foods.filter(f => (f.mealType || 'uncategorized') === mealType);
   if (foods.length === 0) {
-    emit('toast', '❌ 本餐没有食物可以保存！');
+    notify.error('本餐没有食物可以保存！');
     return;
   }
   const comboName = prompt(
@@ -71,7 +73,7 @@ const saveCombo = (mealType: string) => {
       name: comboName,
       foods: foods.map(f => ({ ...f }))
     });
-    emit('toast', `✅ 套餐【${comboName}】已保存`);
+    notify.success(`套餐【${comboName}】已保存`);
   }
 };
 
@@ -86,12 +88,12 @@ const applyCombo = (combo: any) => {
       store.activeDay.foods.push({ ...cf, mealType: currentMealType.value });
     }
   });
-  emit('toast', `🍱 已加载套餐【${combo.name}】`);
+  notify.success(`🍱 已加载套餐【${combo.name}】`);
 };
 
 const handleCopyMeal = (mealType: string) => {
   store.copyMealToTomorrow(mealType);
-  emit('toast', `🚀 ${mealTypeLabels[mealType as MealType]} 已成功投递至明日`);
+  notify.success(`${mealTypeLabels[mealType as MealType]} 已成功投递至明日`);
 };
 
 const groupedFoods = computed(() => {

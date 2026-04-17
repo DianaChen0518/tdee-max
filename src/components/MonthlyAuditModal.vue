@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useTdeeStore } from '../store/useTdeeStore';
-import { CalculatorService } from '../services/CalculatorService';
+import { ReportingService } from '../services/ReportingService';
 
 const store = useTdeeStore();
 const emit = defineEmits(['close']);
@@ -9,33 +9,13 @@ const emit = defineEmits(['close']);
 // 默认选中当前选定日期所在的月份
 const selectedMonth = ref(store.selectedDate.slice(0, 7));
 
-// 计算选中月份的所有记录
-const monthlyRecords = computed(() => {
-  const records = [];
-  for (const [date, data] of Object.entries(store.database)) {
-    // 筛选出属于选中月份的记录
-    if (date.startsWith(selectedMonth.value)) {
-      // 使用工厂函数严谨计算历史那一天的真实数据
-      const summary = CalculatorService.calculateDailySummary(data, store.userProfile, date);
-
-      // 只有真正在记账的日子才算进去（有体重、有步数或有吃东西）
-      if (data.weight > 0 || data.steps > 0 || data.foods.length > 0 || data.workouts.length > 0) {
-        records.push({ date, weight: data.weight, tdee: summary.tdee, intake: summary.intake, deficit: summary.deficit });
-      }
-    }
-  }
-  // 按日期倒序排列（最新的在上面）
-  return records.sort((a, b) => b.date.localeCompare(a.date));
+// 获取报表数据
+const report = computed(() => {
+  return ReportingService.getMonthlyReport(store.database, store.userProfile, selectedMonth.value);
 });
 
-// 计算月度大盘统计
-const monthlySummary = computed(() => {
-  const totalDeficit = monthlyRecords.value.reduce((sum, r) => sum + r.deficit, 0);
-  return {
-    deficit: totalDeficit,
-    fat: totalDeficit / 7.7
-  };
-});
+const monthlyRecords = computed(() => report.value.records);
+const monthlySummary = computed(() => report.value.stats);
 </script>
 
 <template>
@@ -57,14 +37,14 @@ const monthlySummary = computed(() => {
       <div class="grid grid-cols-2 gap-4 mb-6 shrink-0">
         <div class="bg-blue-50 dark:bg-[#0f172a] p-4 rounded-xl border border-blue-100 dark:border-blue-900/50 text-center transition-colors">
           <div class="text-xs text-blue-600 dark:text-blue-400 mb-1 font-bold">本月累计热量缺口</div>
-          <div :class="['text-3xl font-black', monthlySummary.deficit > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-500 dark:text-red-400']">
-            {{ monthlySummary.deficit > 0 ? '-' : '+' }}{{ Math.abs(monthlySummary.deficit).toFixed(0) }} <span class="text-sm font-normal">kcal</span>
+          <div :class="['text-3xl font-black', monthlySummary.totalDeficit > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-500 dark:text-red-400']">
+            {{ monthlySummary.totalDeficit > 0 ? '-' : '+' }}{{ Math.abs(monthlySummary.totalDeficit).toFixed(0) }} <span class="text-sm font-normal">kcal</span>
           </div>
         </div>
         <div class="bg-green-50 dark:bg-[#064e3b]/30 p-4 rounded-xl border border-green-100 dark:border-green-900/50 text-center transition-colors">
           <div class="text-xs text-green-700 dark:text-green-500 mb-1 font-bold">本月理论脂肪变动</div>
-          <div :class="['text-3xl font-black', monthlySummary.deficit > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400']">
-            {{ monthlySummary.deficit > 0 ? '消耗' : '囤积' }} {{ Math.abs(monthlySummary.fat).toFixed(1) }} <span class="text-sm font-normal">g</span>
+          <div :class="['text-3xl font-black', monthlySummary.totalDeficit > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400']">
+            {{ monthlySummary.totalDeficit > 0 ? '消耗' : '囤积' }} {{ Math.abs(monthlySummary.theoreticalFatChangeGrams).toFixed(1) }} <span class="text-sm font-normal">g</span>
           </div>
         </div>
       </div>

@@ -1,31 +1,22 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useTdeeStore } from '../store/useTdeeStore';
-import { CalculatorService } from '../services/CalculatorService';
+import { ReportingService } from '../services/ReportingService';
 import {
   Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler
 } from 'chart.js';
 import { Line, Bar } from 'vue-chartjs';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler);
+ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler);
 
 const store = useTdeeStore();
 const emit = defineEmits(['close']);
 
 const timeRange = ref<'7' | '30' | 'all'>('7');
 
-// 过滤和排序数据
+// 获取标准化处理后的所有记录
 const rawRecords = computed(() => {
-  const records = [];
-  for (const [date, data] of Object.entries(store.database)) {
-    // 只有真正在记账的日子才算进去
-    if (data.weight > 0 || data.steps > 0 || data.foods.length > 0 || data.workouts.length > 0) {
-      const summary = CalculatorService.calculateDailySummary(data, store.userProfile, date);
-      records.push({ date, weight: data.weight, tdee: summary.tdee, intake: summary.intake, deficit: summary.deficit });
-    }
-  }
-  // 按日期正序排列（图表从左到右依次为旧到新）
-  return records.sort((a, b) => a.date.localeCompare(b.date));
+  return ReportingService.getProcessingRecords(store.database, store.userProfile);
 });
 
 const chartRecords = computed(() => {
@@ -92,9 +83,7 @@ const energyChartData = computed(() => {
 
 // 统计大盘
 const summaryStats = computed(() => {
-  const totalDeficit = chartRecords.value.reduce((sum, r) => sum + r.deficit, 0);
-  const avgIntake = chartRecords.value.reduce((sum, r) => sum + r.intake, 0) / (chartRecords.value.length || 1);
-  return { deficit: totalDeficit, fat: totalDeficit / 7.7, avgIntake };
+  return ReportingService.aggregateStats(chartRecords.value);
 });
 
 const setRange = (val: '7' | '30' | 'all') => { timeRange.value = val; };
@@ -121,14 +110,14 @@ const setRange = (val: '7' | '30' | 'all') => { timeRange.value = val; };
       <div class="grid grid-cols-3 gap-3 md:gap-6 mb-6 shrink-0">
         <div class="bg-blue-50 dark:bg-[#0f172a] p-3 md:p-5 rounded-2xl border border-blue-100 dark:border-blue-900/50 text-center transition-colors">
           <div class="text-xs text-blue-600 dark:text-blue-400 mb-1 font-bold">区间累计热量缺口</div>
-          <div :class="['text-2xl md:text-3xl font-black', summaryStats.deficit > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-500 dark:text-red-400']">
-            {{ summaryStats.deficit > 0 ? '-' : '+' }}{{ Math.abs(summaryStats.deficit).toFixed(0) }} <span class="text-sm font-normal">kcal</span>
+          <div :class="['text-2xl md:text-3xl font-black', summaryStats.totalDeficit > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-500 dark:text-red-400']">
+            {{ summaryStats.totalDeficit > 0 ? '-' : '+' }}{{ Math.abs(summaryStats.totalDeficit).toFixed(0) }} <span class="text-sm font-normal">kcal</span>
           </div>
         </div>
         <div class="bg-green-50 dark:bg-[#064e3b]/30 p-3 md:p-5 rounded-2xl border border-green-100 dark:border-green-900/50 text-center transition-colors">
           <div class="text-xs text-green-700 dark:text-green-500 mb-1 font-bold">理论脂肪变动</div>
-          <div :class="['text-2xl md:text-3xl font-black', summaryStats.deficit > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400']">
-            {{ summaryStats.deficit > 0 ? '消耗' : '反弹' }} {{ Math.abs(summaryStats.fat).toFixed(1) }} <span class="text-sm font-normal">g</span>
+          <div :class="['text-2xl md:text-3xl font-black', summaryStats.totalDeficit > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400']">
+            {{ summaryStats.totalDeficit > 0 ? '消耗' : '反弹' }} {{ Math.abs(summaryStats.theoreticalFatChangeGrams).toFixed(1) }} <span class="text-sm font-normal">g</span>
           </div>
         </div>
         <div class="bg-orange-50 dark:bg-[#431407]/30 p-3 md:p-5 rounded-2xl border border-orange-100 dark:border-orange-900/50 text-center transition-colors">
