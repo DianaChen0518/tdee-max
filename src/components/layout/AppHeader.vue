@@ -24,23 +24,23 @@ const isToday = computed(() => store.selectedDate === DateUtils.getLocalYYYYMMDD
   <header class="flex flex-col md:flex-row justify-between items-center mb-6 bg-white dark:bg-[#1e1e1e] p-4 rounded-card border border-gray-100 dark:border-[#333] shadow-premium dark:shadow-none transition-colors">
     <h1 class="text-xl font-bold flex flex-wrap items-center gap-2 mb-4 md:mb-0 text-gray-800 dark:text-white">
       📅 {{ t('header.title') }}
-      <div class="flex flex-wrap gap-1 ml-1 items-center">
-        <button @click="emit('open-datavis')" class="text-[10px] bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/40 dark:hover:bg-blue-800/60 text-blue-700 dark:text-blue-300 px-3 py-1.5 rounded-btn transition-colors font-black hover:scale-105 transform uppercase tracking-tighter">
+      <div class="flex flex-wrap gap-2 ml-2 items-center">
+        <button @click="emit('open-datavis')" class="btn-header-blue">
           📊 {{ t('header.datavis') }}
         </button>
-        <button @click="emit('open-monthly')" class="text-[10px] bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900/40 dark:hover:bg-indigo-800/60 text-indigo-700 dark:text-indigo-300 px-3 py-1.5 rounded-btn transition-colors font-black hover:scale-105 transform uppercase tracking-tighter">
+        <button @click="emit('open-monthly')" class="btn-header-indigo">
           📋 {{ t('header.monthly') }}
         </button>
-        <button @click="emit('open-settings')" class="text-[10px] bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-white px-3 py-1.5 rounded-btn transition-colors opacity-80 hover:opacity-100 font-black uppercase tracking-tighter">
+        <button @click="emit('open-settings')" class="btn-header-gray">
           ⚙️ {{ t('header.settings') }}
         </button>
+        <button @click="toggleLang()" class="btn-header-emerald">
+          {{ locale === 'zh-CN' ? '🇨🇳 ZH' : '🇺🇸 EN' }}
+        </button>
+        <button @click="toggleDark()" class="btn-header-gray">
+          {{ isDark ? '☀️ ' + t('header.light') : '🌙 ' + t('header.dark') }}
+        </button>
       </div>
-      <button @click="toggleLang()" class="text-sm bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 px-3 py-1.5 rounded-btn transition-colors font-bold">
-        {{ locale === 'zh-CN' ? '🇨🇳 ZH' : '🇺🇸 EN' }}
-      </button>
-      <button @click="toggleDark()" class="text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-white px-3 py-1.5 rounded-btn transition-colors">
-        {{ isDark ? '☀️ ' + t('header.light') : '🌙 ' + t('header.dark') }}
-      </button>
     </h1>
 
     <div class="flex items-center gap-3">
