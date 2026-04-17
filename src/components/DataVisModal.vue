@@ -34,7 +34,7 @@ const commonOptions = computed(() => ({
   maintainAspectRatio: false,
   interaction: { mode: 'index' as const, intersect: false },
   plugins: {
-    legend: { labels: { color: '#888', font: { weight: 'bold' } } }
+    legend: { labels: { color: '#888', font: { weight: 'bold' as const } } }
   },
   scales: {
     x: { grid: { color: 'rgba(150, 150, 150, 0.1)' }, ticks: { color: '#888' } },

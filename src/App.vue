@@ -43,19 +43,19 @@ watch(() => store.isConfigured, (configured) => {
 // Event Handlers
 const handleSave = async () => {
   // 1. Local Save (Immediate feedback via the new notification system)
-  notify.success(t('common.saveSuccess', { date: store.selectedDate }));
+  notify.success(t('notifications.saveSuccess', { date: store.selectedDate }));
   
   // 2. Cloud Sync (Conditional & Async)
   if (store.isCloudSyncEnabled) {
-    const syncId = notify.syncing(t('common.syncing'));
+    const syncId = notify.syncing(t('notifications.syncing'));
     
     const result = await store.syncToCloud();
     
     notify.remove(syncId);
     if (result.success) {
-      notify.success(t('common.syncSuccess'));
+      notify.success(t('notifications.syncSuccess'));
     } else {
-      notify.error(t('common.syncError', { message: result.message }));
+      notify.error(t('notifications.syncError', { message: result.message }));
     }
   }
 };
@@ -94,7 +94,7 @@ const handleExport = () => {
         <!-- Right Column: Dashboard & Actions -->
         <DailyDashboard 
           @save="handleSave" 
-          @reset="notify.info(t('common.resetSuccess'))" 
+          @reset="notify.info(t('notifications.resetSuccess'))" 
           @export="handleExport" 
         />
 
