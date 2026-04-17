@@ -5,8 +5,16 @@ import { GistService } from '../services/GistService';
 import { useI18n } from 'vue-i18n';
 
 const store = useTdeeStore();
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const emit = defineEmits(['close']);
+
+const currentLang = computed({
+  get: () => locale.value,
+  set: (val) => {
+    locale.value = val;
+    localStorage.setItem('user-lang', val);
+  }
+});
 
 const isValid = computed(() => {
   return store.userProfile.birthDate !== '' && store.userProfile.heightCm > 0;
@@ -107,6 +115,13 @@ const restoreData = async () => {
           <select v-model="store.userProfile.gender" class="w-full bg-gray-50 dark:bg-[#2c2c2c] border border-gray-200 dark:border-[#444] rounded-inner p-2.5 text-gray-800 dark:text-white outline-none focus:border-green-500 transition-all font-bold cursor-pointer">
             <option value="M">{{ t('settings.genders.M') }}</option>
             <option value="F">{{ t('settings.genders.F') }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1 uppercase">{{ t('settings.labels.language') }}</label>
+          <select v-model="currentLang" class="w-full bg-gray-50 dark:bg-[#2c2c2c] border border-gray-200 dark:border-[#444] rounded-inner p-2.5 text-gray-800 dark:text-white outline-none focus:border-green-500 transition-all font-bold cursor-pointer">
+            <option value="zh-CN">{{ t('settings.languages.zh') }}</option>
+            <option value="en-US">{{ t('settings.languages.en') }}</option>
           </select>
         </div>
       </div>

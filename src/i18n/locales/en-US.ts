@@ -105,8 +105,13 @@ export default {
       height: 'Height (cm)',
       rhr: 'Resting Heart Rate (RHR)',
       gender: 'Biological Gender (for Mifflin-St Jeor)',
+      language: 'Interface Language',
       token: 'GitHub PAT (Token)',
       gistId: 'Backup Gist ID (leave blank to create new)'
+    },
+    languages: {
+      zh: 'Chinese',
+      en: 'English'
     },
     rhrTip: '💡 Precise heart rate reserve (HRR) derivation based on Tanaka formula. EPOC afterburn effects use a triple-segment intensity model with duration correction (0.7x - 1.1x) to ensure accurate compensation.',
     genders: {

@@ -8,14 +8,9 @@ import { useI18n } from 'vue-i18n';
 const emit = defineEmits(['open-settings', 'open-datavis']);
 
 const store = useTdeeStore();
-const { t, locale } = useI18n();
+const { t } = useI18n();
 const isDark = useDark();
 const toggleDark = useToggle(isDark);
-
-const toggleLang = () => {
-  locale.value = locale.value === 'zh-CN' ? 'en-US' : 'zh-CN';
-  localStorage.setItem('user-lang', locale.value);
-};
 
 const isToday = computed(() => store.selectedDate === DateUtils.getLocalYYYYMMDD());
 </script>
@@ -30,9 +25,6 @@ const isToday = computed(() => store.selectedDate === DateUtils.getLocalYYYYMMDD
         </button>
         <button @click="emit('open-settings')" class="btn-header-gray">
           ⚙️ {{ t('header.settings') }}
-        </button>
-        <button @click="toggleLang()" class="btn-header-emerald">
-          {{ locale === 'zh-CN' ? '🇨🇳 ZH' : '🇺🇸 EN' }}
         </button>
         <button @click="toggleDark()" class="btn-header-gray">
           {{ isDark ? '☀️ ' + t('header.light') : '🌙 ' + t('header.dark') }}

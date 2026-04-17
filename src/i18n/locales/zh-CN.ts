@@ -105,8 +105,13 @@ export default {
       height: '身高 (cm)',
       rhr: '静息心率 (RHR)',
       gender: '生理性别 (Mifflin-St Jeor 公式基数)',
+      language: '界面语言 (Language)',
       token: 'GitHub PAT (Token)',
       gistId: '备份库 ID (Gist ID) - 首次备份留空自动生成'
+    },
+    languages: {
+      zh: '简体中文',
+      en: 'English'
     },
     rhrTip: '💡 基于 Tanaka 公式精确推导储备心率 (HRR)。后燃效应 (EPOC) 采用三段线性强度模型 + 时长修正因子 (0.7x - 1.1x) 计算，确保短时运动有补偿，长时运动有增益。',
     genders: {
