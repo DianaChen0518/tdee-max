@@ -85,10 +85,9 @@ describe('CalculatorService', () => {
       const gender = 'M';
       const rhr = 70;
       const bmr = 1728;
-      const bmrPerMin = bmr / 1440; // ~1.2
 
       const workouts = [{
-        type: 'aerobic',
+        type: 'aerobic' as any,
         hr: 150,
         mins: 30,
         secs: 0
@@ -104,7 +103,7 @@ describe('CalculatorService', () => {
     it('should calculate resistance training using MET model', () => {
       const weight = 80;
       const workouts = [{
-        type: 'anaerobic',
+        type: 'anaerobic' as any,
         intensity: 'high' as any,
         mins: 60,
         secs: 0
