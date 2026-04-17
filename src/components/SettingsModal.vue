@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useTdeeStore } from '../store/useTdeeStore';
+import { GistService } from '../services/GistService';
 
 const store = useTdeeStore();
 const emit = defineEmits(['close']);
@@ -28,46 +29,15 @@ const backupData = async () => {
     syncError.value = '';
     syncSuccess.value = '';
     
-    const payloadContent = JSON.stringify({
-        userProfile: store.userProfile,
-        database: store.database,
-        commonFoods: store.commonFoods,
-        recipeCombos: store.recipeCombos
-    });
-
     try {
-        const url = store.gistId 
-            ? `https://api.github.com/gists/${store.gistId}`
-            : 'https://api.github.com/gists';
-            
-        const method = store.gistId ? 'PATCH' : 'POST';
-        
-        const res = await fetch(url, {
-            method,
-            headers: {
-                'Authorization': `token ${store.githubToken}`,
-                'Accept': 'application/vnd.github.v3+json'
-            },
-            body: JSON.stringify({
-                description: "TDEE Tracker Cloud Backup",
-                public: false,
-                files: {
-                    "tdee-backup.json": {
-                        content: payloadContent
-                    }
-                }
-            })
-        });
-        
-        if (!res.ok) throw new Error('API 拒绝，可能 Token 无效');
-        const data = await res.json();
-        
-        if (!store.gistId) {
-            store.gistId = data.id;
+        const result = await store.syncToCloud();
+        if (result.success) {
+            syncSuccess.value = '云端备份成功！(' + new Date().toLocaleTimeString() + ')';
+        } else {
+            syncError.value = result.message;
         }
-        syncSuccess.value = '云端备份成功！(' + new Date().toLocaleTimeString() + ')';
     } catch (e: any) {
-        syncError.value = '云端同步失败: ' + e.message;
+        syncError.value = '同步异常: ' + e.message;
     } finally {
         syncInProgress.value = false;
     }
@@ -85,26 +55,19 @@ const restoreData = async () => {
     syncSuccess.value = '';
 
     try {
-        const res = await fetch(`https://api.github.com/gists/${store.gistId}`, {
-            headers: {
-                'Authorization': `token ${store.githubToken}`,
-                'Accept': 'application/vnd.github.v3+json'
-            }
-        });
-        if (!res.ok) throw new Error('拉取失败，请检查 Gist ID 或 Token');
-        const data = await res.json();
-        const contentStr = data.files["tdee-backup.json"]?.content;
-        if (!contentStr) throw new Error('未在 Gist 中找到 TDEE 备份文件');
-        
-        const parsed = JSON.parse(contentStr);
-        if (parsed.userProfile) Object.assign(store.userProfile, parsed.userProfile);
-        if (parsed.database) store.database = parsed.database;
-        if (parsed.commonFoods) store.commonFoods = parsed.commonFoods;
-        if (parsed.recipeCombos) store.recipeCombos = parsed.recipeCombos;
-        
-        syncSuccess.value = '已从云端恢复历史数据！';
+        const result = await GistService.pullFromCloud(store.githubToken, store.gistId);
+        if (result.success && result.data) {
+            const parsed = result.data;
+            if (parsed.userProfile) Object.assign(store.userProfile, parsed.userProfile);
+            if (parsed.database) store.database = parsed.database;
+            if (parsed.commonFoods) store.commonFoods = parsed.commonFoods;
+            if (parsed.recipeCombos) store.recipeCombos = parsed.recipeCombos;
+            syncSuccess.value = '已从云端恢复历史数据！';
+        } else {
+            syncError.value = result.message;
+        }
     } catch (e: any) {
-        syncError.value = '云端恢复失败: ' + e.message;
+        syncError.value = '恢复失败: ' + e.message;
     } finally {
         syncInProgress.value = false;
     }

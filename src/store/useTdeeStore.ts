@@ -6,6 +6,7 @@ import { CalculatorService } from '../services/CalculatorService';
 import { DayManager } from '../utils/day-manager';
 import { DateUtils } from '../utils/DateUtils';
 import { Logger } from '../utils/Logger';
+import { GistService, GistSyncResult } from '../services/GistService';
 
 /**
  * Main TDEE Store for managing user profile, food database, and daily logs.
@@ -39,6 +40,10 @@ export const useTdeeStore = defineStore('tdee', () => {
   // --- Computed Views ---
   const isConfigured = computed(() => {
     return userProfile.value.birthDate !== '' && userProfile.value.heightCm > 0;
+  });
+
+  const isCloudSyncEnabled = computed(() => {
+    return !!(githubToken.value && githubToken.value.trim().length > 0);
   });
 
   const activeDay = computed((): DayData => {
@@ -106,10 +111,31 @@ export const useTdeeStore = defineStore('tdee', () => {
     Logger.info(`Copied ${mealType} to tomorrow`, { tomorrowStr });
   };
 
+  const syncToCloud = async (): Promise<GistSyncResult> => {
+    if (!isCloudSyncEnabled.value) {
+      return { success: false, message: 'Cloud sync not configured' };
+    }
+
+    const payload = {
+      userProfile: userProfile.value,
+      database: database.value,
+      commonFoods: commonFoods.value,
+      recipeCombos: recipeCombos.value
+    };
+
+    const result = await GistService.pushToCloud(githubToken.value, gistId.value, payload);
+    
+    if (result.success && result.data?.id && !gistId.value) {
+      gistId.value = result.data.id;
+    }
+
+    return result;
+  };
+
   return {
     userProfile, githubToken, gistId, database, commonFoods, recipeCombos, selectedDate, activeDay,
-    isConfigured, 
+    isConfigured, isCloudSyncEnabled,
     age, bmr, tefCalories, stepCalories, workoutCalories, epocCalories, tdee, totalConsumed, dailyDeficit, summary,
-    changeDate, goToToday, clearDayData, copyYesterdayDiet, copyMealToTomorrow
+    changeDate, goToToday, clearDayData, copyYesterdayDiet, copyMealToTomorrow, syncToCloud
   };
 });
