@@ -7,12 +7,15 @@ import { DayManager } from '../utils/day-manager';
 import { DateUtils } from '../utils/DateUtils';
 import { Logger } from '../utils/Logger';
 import { GistService, GistSyncResult } from '../services/GistService';
+import i18n from '../i18n';
 
 /**
  * Main TDEE Store for managing user profile, food database, and daily logs.
  * Orchestrates state while delegating business logic to Services/Utils.
  */
 export const useTdeeStore = defineStore('tdee', () => {
+  const { t } = i18n.global;
+
   // --- Persistent State ---
   const userProfile = useStorage<UserProfile>('tdee_user_v2', {
     birthDate: '', 
@@ -24,10 +27,10 @@ export const useTdeeStore = defineStore('tdee', () => {
   const database = useStorage<Database>('tdee_db_v2', {});
   
   const commonFoods = useStorage<Food[]>('tdee_foods_v2', [
-    { name: '生鸡胸肉 (100g)', cals: 133 },
-    { name: '熟米饭 (100g)', cals: 116 },
-    { name: '水煮蛋 (1个)', cals: 75 },
-    { name: '黑咖啡', cals: 5 }
+    { name: t('defaults.foods.chicken'), cals: 133 },
+    { name: t('defaults.foods.rice'), cals: 116 },
+    { name: t('defaults.foods.egg'), cals: 75 },
+    { name: t('defaults.foods.coffee'), cals: 5 }
   ]);
 
   const recipeCombos = useStorage<RecipeCombo[]>('tdee_recipe_combos', []);

@@ -3,6 +3,7 @@ import { ref, onMounted, watch } from 'vue';
 import { useTdeeStore } from './store/useTdeeStore';
 import { exportTdeeData } from './utils/export';
 import { useNotification } from './composables/useNotification';
+import { useI18n } from 'vue-i18n';
 
 // Extracted Components
 import AppHeader from './components/layout/AppHeader.vue';
@@ -15,13 +16,16 @@ import AppNotification from './components/layout/AppNotification.vue';
 // Existing Modals
 import SettingsModal from './components/SettingsModal.vue';
 import DataVisModal from './components/DataVisModal.vue';
+import MonthlyAuditModal from './components/MonthlyAuditModal.vue';
 
 const store = useTdeeStore();
 const notify = useNotification();
+const { t } = useI18n();
 
 // UI State
 const showSettings = ref(false);
-const showAudit = ref(false);
+const showDataVis = ref(false);
+const showMonthly = ref(false);
 
 // Initialization and configuration checks
 onMounted(() => {
@@ -39,19 +43,19 @@ watch(() => store.isConfigured, (configured) => {
 // Event Handlers
 const handleSave = async () => {
   // 1. Local Save (Immediate feedback via the new notification system)
-  notify.success(`已安全保存 ${store.selectedDate} 的数据到本地`);
+  notify.success(t('common.saveSuccess', { date: store.selectedDate }));
   
   // 2. Cloud Sync (Conditional & Async)
   if (store.isCloudSyncEnabled) {
-    const syncId = notify.syncing('正在同步到云端 Gist...');
+    const syncId = notify.syncing(t('common.syncing'));
     
     const result = await store.syncToCloud();
     
     notify.remove(syncId);
     if (result.success) {
-      notify.success('云端备份同步成功！');
+      notify.success(t('common.syncSuccess'));
     } else {
-      notify.error(`云端同步失败: ${result.message}`);
+      notify.error(t('common.syncError', { message: result.message }));
     }
   }
 };
@@ -72,7 +76,8 @@ const handleExport = () => {
       <!-- Layout Header -->
       <AppHeader 
         @open-settings="showSettings = true" 
-        @open-audit="showAudit = true" 
+        @open-datavis="showDataVis = true"
+        @open-monthly="showMonthly = true"
       />
 
       <main class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 items-start relative">
@@ -89,7 +94,7 @@ const handleExport = () => {
         <!-- Right Column: Dashboard & Actions -->
         <DailyDashboard 
           @save="handleSave" 
-          @reset="notify.info('已重置当日数据')" 
+          @reset="notify.info(t('common.resetSuccess'))" 
           @export="handleExport" 
         />
 
@@ -98,7 +103,8 @@ const handleExport = () => {
     
     <!-- Modals -->
     <SettingsModal v-if="showSettings" @close="showSettings = false" />
-    <DataVisModal v-if="showAudit" @close="showAudit = false" />
+    <DataVisModal v-if="showDataVis" @close="showDataVis = false" />
+    <MonthlyAuditModal v-if="showMonthly" @close="showMonthly = false" />
   </div>
 </template>
 

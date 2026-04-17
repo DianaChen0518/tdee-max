@@ -3,10 +3,11 @@ import { ref, computed } from 'vue';
 import { useTdeeStore } from '../../../store/useTdeeStore';
 import { MealType, Food } from '../../../types';
 import { useNotification } from '../../../composables/useNotification';
+import { useI18n } from 'vue-i18n';
 
 const store = useTdeeStore();
 const notify = useNotification();
-const emit = defineEmits([]);
+const { t } = useI18n();
 
 const getAutoMealType = (): MealType => {
   const hr = new Date().getHours();
@@ -17,9 +18,13 @@ const getAutoMealType = (): MealType => {
 };
 
 const currentMealType = ref<MealType>(getAutoMealType());
-const mealTypeLabels: Record<MealType, string> = {
-  breakfast: '早餐', lunch: '午餐', dinner: '晚餐', snack: '加餐', uncategorized: '未分类'
-};
+const mealTypeLabels = computed<Record<MealType, string>>(() => ({
+  breakfast: t('diet.mealLabels.breakfast'),
+  lunch: t('diet.mealLabels.lunch'),
+  dinner: t('diet.mealLabels.dinner'),
+  snack: t('diet.mealLabels.snack'),
+  uncategorized: t('diet.mealLabels.uncategorized')
+}));
 
 const customFood = ref<{ name: string; cals: number | null; unit: 'kcal' | 'kJ' }>({ 
   name: '', cals: null, unit: 'kcal' 
@@ -53,19 +58,19 @@ const saveQuickFood = () => {
     store.commonFoods.push({ name: customFood.value.name, cals: finalCals });
     customFood.value.name = ''; 
     customFood.value.cals = null;
-    notify.success('已存入快捷库');
+    notify.success(t('notifications.quickFoodSaved'));
   }
 };
 
 const saveCombo = (mealType: string) => {
   const foods = store.activeDay.foods.filter(f => (f.mealType || 'uncategorized') === mealType);
   if (foods.length === 0) {
-    notify.error('本餐没有食物可以保存！');
+    notify.error(t('notifications.comboEmptyError'));
     return;
   }
   const comboName = prompt(
-    `请输入组合名称 (将保存 ${foods.length} 种食物):`, 
-    mealTypeLabels[mealType as MealType] + " 常用组合"
+    t('diet.comboPrompt', { count: foods.length }), 
+    t('diet.comboDefaultName', { meal: mealTypeLabels.value[mealType as MealType] })
   );
   if (comboName) {
     store.recipeCombos.push({
@@ -73,7 +78,7 @@ const saveCombo = (mealType: string) => {
       name: comboName,
       foods: foods.map(f => ({ ...f }))
     });
-    notify.success(`套餐【${comboName}】已保存`);
+    notify.success(t('notifications.comboSaved', { name: comboName }));
   }
 };
 
@@ -88,12 +93,12 @@ const applyCombo = (combo: any) => {
       store.activeDay.foods.push({ ...cf, mealType: currentMealType.value });
     }
   });
-  notify.success(`🍱 已加载套餐【${combo.name}】`);
+  notify.success(t('notifications.comboLoaded', { name: combo.name }));
 };
 
 const handleCopyMeal = (mealType: string) => {
   store.copyMealToTomorrow(mealType);
-  notify.success(`${mealTypeLabels[mealType as MealType]} 已成功投递至明日`);
+  notify.success(t('notifications.copyTomorrowSuccess', { name: mealTypeLabels.value[mealType as MealType] }));
 };
 
 const groupedFoods = computed(() => {
@@ -109,44 +114,44 @@ const groupedFoods = computed(() => {
 </script>
 
 <template>
-  <div class="bg-white dark:bg-[#1e1e1e] p-4 md:p-5 rounded-[24px] border border-gray-100 dark:border-[#333] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none flex flex-col transition-colors max-h-[100vh] lg:max-h-none overflow-y-auto lg:overflow-visible">
-    <h2 class="text-lg font-bold mb-3 shrink-0 text-gray-800 dark:text-white">🍽️ 饮食摄入</h2>
+  <div class="bg-white dark:bg-[#1e1e1e] p-4 md:p-5 rounded-card border border-gray-100 dark:border-[#333] shadow-premium dark:shadow-none flex flex-col transition-colors max-h-[100vh] lg:max-h-none overflow-y-auto lg:overflow-visible">
+    <h2 class="text-lg font-bold mb-3 shrink-0 text-gray-800 dark:text-white">🍽️ {{ t('diet.title') }}</h2>
     
     <!-- Tab Selector -->
-    <div class="flex gap-1.5 mb-3 bg-gray-100/80 dark:bg-[#2c2c2c] p-1.5 rounded-[16px] shrink-0">
+    <div class="flex gap-1.5 mb-3 bg-gray-100/80 dark:bg-[#2c2c2c] p-1.5 rounded-inner shrink-0">
       <button 
         v-for="kind in (['breakfast', 'lunch', 'dinner', 'snack'] as MealType[])" 
         :key="kind"
         @click="currentMealType = kind" 
-        :class="['flex-1 py-1.5 text-[13px] font-bold rounded-[12px] transition-all', currentMealType === kind ? 'bg-white dark:bg-[#1e1e1e] text-blue-600 dark:text-blue-400 shadow-sm transform scale-[1.02]' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-[#3c3c3c]']"
+        :class="['flex-1 py-1.5 text-[13px] font-bold rounded-btn transition-all', currentMealType === kind ? 'bg-white dark:bg-[#1e1e1e] text-blue-600 dark:text-blue-400 shadow-sm transform scale-[1.02]' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-[#3c3c3c]']"
       >
         {{ mealTypeLabels[kind] }}
       </button>
     </div>
 
     <!-- Quick Entry Panel -->
-    <div class="flex flex-col gap-2.5 mb-3 bg-gray-50/80 dark:bg-[#252525] p-3 rounded-[16px] border border-gray-100 dark:border-[#333] shrink-0 transition-colors">
+    <div class="flex flex-col gap-2.5 mb-3 bg-gray-50/80 dark:bg-[#252525] p-3 rounded-inner border border-gray-100 dark:border-[#333] shrink-0 transition-colors">
       <div class="flex gap-2 w-full">
-        <input type="text" v-model="customFood.name" placeholder="食物名称" class="flex-1 min-w-0 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#444] rounded-[12px] p-2 text-sm font-medium text-gray-800 dark:text-white transition-colors outline-none focus:border-blue-500">
-        <input type="number" v-model.number="customFood.cals" min="0" placeholder="热量" class="w-[72px] bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#444] rounded-[12px] p-2 text-sm font-semibold text-gray-800 dark:text-white transition-colors outline-none focus:border-blue-500">
-        <select v-model="customFood.unit" class="w-[68px] bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#444] rounded-[12px] p-2 text-sm font-medium text-gray-800 dark:text-white transition-colors outline-none focus:border-blue-500 cursor-pointer">
-          <option value="kcal">千卡</option>
-          <option value="kJ">千焦</option>
+        <input type="text" v-model="customFood.name" :placeholder="t('diet.placeholderFood')" class="flex-1 min-w-0 bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#444] rounded-btn p-2 text-sm font-medium text-gray-800 dark:text-white transition-colors outline-none focus:border-blue-500">
+        <input type="number" v-model.number="customFood.cals" min="0" :placeholder="t('diet.placeholderCals')" class="w-[72px] bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#444] rounded-btn p-2 text-sm font-semibold text-gray-800 dark:text-white transition-colors outline-none focus:border-blue-500">
+        <select v-model="customFood.unit" class="w-[68px] bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-[#444] rounded-btn p-2 text-sm font-medium text-gray-800 dark:text-white transition-colors outline-none focus:border-blue-500 cursor-pointer">
+          <option value="kcal">{{ t('diet.unitKcal') }}</option>
+          <option value="kJ">{{ t('diet.unitKj') }}</option>
         </select>
       </div>
       <div class="flex gap-2 w-full">
-        <button @click="addFood" class="bg-blue-600 hover:bg-blue-500 text-white flex-1 py-2 rounded-[12px] text-sm font-bold transition-colors shadow-sm">吃下肚</button>
-        <button @click="saveQuickFood" class="bg-purple-600 hover:bg-purple-500 text-white flex-1 py-2 rounded-[12px] text-sm font-bold transition-colors shadow-sm">存快捷</button>
+        <button @click="addFood" class="bg-blue-600 hover:bg-blue-500 text-white flex-1 py-2 rounded-btn text-sm font-bold transition-colors shadow-md">{{ t('diet.eat') }}</button>
+        <button @click="saveQuickFood" class="bg-purple-600 hover:bg-purple-500 text-white flex-1 py-2 rounded-btn text-sm font-bold transition-colors shadow-md">{{ t('diet.saveQuick') }}</button>
       </div>
     </div>
     
     <!-- Recipe Combos -->
     <div v-if="store.recipeCombos.length > 0" class="mb-2 shrink-0">
-      <div class="text-[11px] text-gray-500 dark:text-gray-400 mb-1">
-        <span>🍱 我的极速套餐库</span>
+      <div class="text-[11px] text-gray-500 dark:text-gray-400 mb-1 font-bold">
+        <span>🍱 {{ t('diet.comboTitle') }}</span>
       </div>
-      <div class="flex flex-wrap gap-2 max-h-[80px] overflow-y-auto pr-1">
-        <div v-for="(combo, i) in store.recipeCombos" :key="combo.id" class="flex items-center bg-purple-50/80 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800/50 rounded-[12px] overflow-hidden transition-colors hover:shadow-sm">
+      <div class="flex flex-wrap gap-2 max-h-[80px] overflow-y-auto pr-1 custom-scrollbar">
+        <div v-for="(combo, i) in store.recipeCombos" :key="combo.id" class="flex items-center bg-purple-50/80 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800/50 rounded-btn overflow-hidden transition-colors hover:shadow-sm">
           <button @click="applyCombo(combo)" class="text-[11px] font-bold px-3 py-1.5 hover:bg-white dark:hover:bg-purple-900/40 text-purple-700 dark:text-purple-300 transition-colors">
             {{ combo.name }}
           </button>
@@ -157,7 +162,7 @@ const groupedFoods = computed(() => {
     
     <!-- Common Foods Library -->
     <div class="mb-3 shrink-0">
-      <div class="flex flex-wrap gap-2 max-h-[110px] overflow-y-auto pr-1">
+      <div class="flex flex-wrap gap-2 max-h-[110px] overflow-y-auto pr-1 custom-scrollbar">
         <div v-for="(f, i) in store.commonFoods" :key="i" class="flex items-center bg-gray-100/80 dark:bg-[#2c2c2c] border border-gray-200 dark:border-[#444] rounded-full overflow-hidden transition-colors hover:shadow-sm">
           <button @click="addFoodItemHelper(f.name, f.cals)" class="text-[11px] font-medium px-3 py-1.5 hover:bg-white dark:hover:bg-[#3c3c3c] text-gray-700 dark:text-gray-200">
             {{ f.name }} <span class="opacity-60 ml-0.5">{{ Math.round(f.cals) }}</span>
@@ -171,21 +176,21 @@ const groupedFoods = computed(() => {
     <div class="flex-1 border-t border-gray-200 dark:border-[#333] pt-3 flex flex-col transition-colors">
       <div class="space-y-4 flex-1">
         <template v-for="kind in (['breakfast', 'lunch', 'dinner', 'snack', 'uncategorized'] as MealType[])" :key="kind">
-          <div v-if="groupedFoods[kind].length > 0" class="mb-5">
+          <div v-if="groupedFoods[kind].length > 0" class="mb-5 last:mb-0">
             <div class="flex items-center justify-between mb-2.5 px-1">
               <span class="text-[14px] font-bold tracking-wider text-slate-700 dark:text-slate-200">{{ mealTypeLabels[kind] }}</span>
               <div class="flex gap-1">
-                <button @click="saveCombo(kind)" class="text-[10px] bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/50 px-2 py-1 rounded transition-colors font-bold">
-                  💾 存为套餐
+                <button @click="saveCombo(kind)" class="text-[10px] bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/50 px-2 py-1 rounded-btn transition-colors font-bold">
+                  💾 {{ t('diet.saveCombo') }}
                 </button>
-                <button @click="handleCopyMeal(kind)" class="text-[10px] bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 px-2 py-1 rounded transition-colors font-bold">
-                  🚀 复制至明日
+                <button @click="handleCopyMeal(kind)" class="text-[10px] bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 px-2 py-1 rounded-btn transition-colors font-bold">
+                  🚀 {{ t('diet.copyTomorrow') }}
                 </button>
               </div>
             </div>
             
             <transition-group name="list" tag="div">
-              <div v-for="f in groupedFoods[kind]" :key="f.name" class="flex justify-between items-center bg-white dark:bg-[#252525] p-3 rounded-[16px] border border-slate-100/80 dark:border-[#333] shadow-[0_2px_10px_rgb(0,0,0,0.02)] mb-2 w-full gap-2">
+              <div v-for="f in groupedFoods[kind]" :key="f.name" class="flex justify-between items-center bg-white dark:bg-[#252525] p-3 rounded-inner border border-slate-100/80 dark:border-[#333] shadow-sm mb-2 w-full gap-2">
                 <span class="text-[15px] font-semibold truncate text-slate-800 dark:text-white flex-1 tracking-tight">{{ f.name }}</span>
                 
                 <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-[#1e1e1e] border border-slate-100 dark:border-[#444] rounded-full px-2 py-1 shrink-0">
@@ -209,9 +214,9 @@ const groupedFoods = computed(() => {
 
         <!-- Empty State -->
         <div v-if="store.activeDay.foods.length === 0" class="flex flex-col items-center justify-center py-6">
-          <div class="text-gray-400 dark:text-gray-500 text-sm mb-3">当日未记录饮食</div>
-          <button @click="store.copyYesterdayDiet" class="text-xs bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50 px-4 py-2 rounded-lg transition-colors font-bold">
-            🔄 一键复制昨日全天
+          <div class="text-gray-400 dark:text-gray-500 text-sm mb-3 font-medium">{{ t('diet.empty') }}</div>
+          <button @click="store.copyYesterdayDiet" class="text-xs bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50 px-4 py-2 rounded-btn transition-colors font-bold">
+            🔄 {{ t('diet.copyYesterday') }}
           </button>
         </div>
       </div>

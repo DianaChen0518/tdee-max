@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Design Tokens - Standardizing the look and feel */
+  --radius-card: 24px;
+  --radius-inner: 16px;
+  --radius-button: 12px;
+  
+  --shadow-premium: 0 8px 30px rgba(0, 0, 0, 0.04);
+  --shadow-hover: 0 10px 40px rgba(0, 0, 0, 0.08);
+  
+  /* Brand Colors */
+  --color-primary: #2563eb; /* Blue-600 */
+  --color-secondary: #7c3aed; /* Purple-600 */
+}
+
 body {
   /* 让 body 自动适应白天和黑夜的底色 */
   @apply bg-gray-100 dark:bg-[#121212] text-gray-900 dark:text-white min-h-screen transition-colors duration-300;
