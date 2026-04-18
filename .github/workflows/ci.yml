@@ -34,6 +34,9 @@ jobs:
     - name: Typecheck
       run: npm run typecheck
       
+    - name: Install browsers for Vitest Storybook
+      run: npx playwright install --with-deps chromium
+      
     - name: Unit Tests
       run: npm run test
 
