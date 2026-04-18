@@ -57,7 +57,8 @@ export default defineConfig({
         extends: true,
         test: {
           environment: 'jsdom',
-          globals: true
+          globals: true,
+          exclude: ['tests/e2e/**', 'node_modules/**', 'dist/**', 'cypress/**', '**/.{idea,git,cache,output,temp}/**']
         }
       },
       {
