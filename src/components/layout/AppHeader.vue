@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useTdeeStore } from '../../store/useTdeeStore';
+import { useDailyStore } from '../../store/useDailyStore';
 import { useDark, useToggle } from '@vueuse/core';
 import { DateUtils } from '../../utils/DateUtils';
 import { useI18n } from 'vue-i18n';
@@ -8,56 +8,90 @@ import { HapticUtils } from '../../utils/HapticUtils';
 
 const emit = defineEmits(['open-settings', 'open-datavis']);
 
-const store = useTdeeStore();
+const dailyStore = useDailyStore();
 const { t } = useI18n();
 const isDark = useDark();
 const toggleDark = useToggle(isDark);
 
-const isToday = computed(() => store.selectedDate === DateUtils.getLocalYYYYMMDD());
+const isToday = computed(() => dailyStore.selectedDate === DateUtils.getLocalYYYYMMDD());
 </script>
 
 <template>
-  <header class="flex flex-col md:flex-row justify-between items-center mb-6 bg-white dark:bg-[#1e1e1e] p-4 rounded-card border border-gray-100 dark:border-[#333] shadow-premium dark:shadow-none transition-colors">
+  <header
+    class="flex flex-col md:flex-row justify-between items-center mb-6 bg-white dark:bg-[#1e1e1e] p-4 rounded-card border border-gray-100 dark:border-[#333] shadow-premium dark:shadow-none transition-colors"
+  >
     <h1 class="text-xl font-bold flex flex-wrap items-center gap-2 mb-4 md:mb-0 text-gray-800 dark:text-white">
       📅 {{ t('header.title') }}
       <div class="flex flex-wrap gap-2 ml-2 items-center">
-        <button @click="HapticUtils.lightTick(); emit('open-datavis')" class="btn-header-blue">
+        <button
+          @click="
+            HapticUtils.lightTick();
+            emit('open-datavis');
+          "
+          class="btn-header-blue"
+        >
           📊 {{ t('header.datavis') }}
         </button>
-        <button @click="HapticUtils.lightTick(); emit('open-settings')" class="btn-header-gray">
+        <button
+          @click="
+            HapticUtils.lightTick();
+            emit('open-settings');
+          "
+          class="btn-header-gray"
+        >
           ⚙️ {{ t('header.settings') }}
         </button>
-        <button @click="HapticUtils.lightTick(); toggleDark()" class="btn-header-gray">
+        <button
+          @click="
+            HapticUtils.lightTick();
+            toggleDark();
+          "
+          class="btn-header-gray"
+        >
           {{ isDark ? '☀️ ' + t('header.light') : '🌙 ' + t('header.dark') }}
         </button>
       </div>
     </h1>
 
     <div class="flex items-center gap-3">
-      <button 
-        @click="HapticUtils.lightTick(); store.changeDate(-1)" 
+      <button
+        @click="
+          HapticUtils.lightTick();
+          dailyStore.changeDate(-1);
+        "
         class="bg-gray-100 dark:bg-[#2c2c2c] hover:bg-gray-200 dark:hover:bg-[#3c3c3c] px-4 py-2 rounded-btn transition-colors"
       >
         ←
       </button>
-      
-      <input 
-        type="date" 
-        v-model="store.selectedDate" 
+
+      <input
+        type="date"
+        v-model="dailyStore.selectedDate"
         class="bg-gray-50 dark:bg-[#121212] border border-gray-300 dark:border-[#444] rounded-btn px-4 py-2 text-gray-800 dark:text-white outline-none focus:border-green-500 font-bold text-center transition-colors"
-      >
-      
-      <button 
-        @click="HapticUtils.lightTick(); store.changeDate(1)" 
-        :disabled="isToday" 
-        :class="['px-4 py-2 rounded-btn transition-colors', isToday ? 'bg-gray-50 dark:bg-[#1a1a1a] text-gray-400 dark:text-gray-600 cursor-not-allowed' : 'bg-gray-100 dark:bg-[#2c2c2c] hover:bg-gray-200 dark:hover:bg-[#3c3c3c]']"
+      />
+
+      <button
+        @click="
+          HapticUtils.lightTick();
+          dailyStore.changeDate(1);
+        "
+        :disabled="isToday"
+        :class="[
+          'px-4 py-2 rounded-btn transition-colors',
+          isToday
+            ? 'bg-gray-50 dark:bg-[#1a1a1a] text-gray-400 dark:text-gray-600 cursor-not-allowed'
+            : 'bg-gray-100 dark:bg-[#2c2c2c] hover:bg-gray-200 dark:hover:bg-[#3c3c3c]'
+        ]"
       >
         →
       </button>
-      
-      <button 
-        @click="HapticUtils.lightTick(); store.goToToday()" 
-        v-if="!isToday" 
+
+      <button
+        @click="
+          HapticUtils.lightTick();
+          dailyStore.goToToday();
+        "
+        v-if="!isToday"
         class="text-sm text-green-600 dark:text-green-400 hover:text-green-500 dark:hover:text-green-300 ml-2 font-bold transition-colors"
       >
         {{ t('header.backToToday') }}

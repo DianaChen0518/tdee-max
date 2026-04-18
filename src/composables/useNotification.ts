@@ -9,6 +9,10 @@ export interface AppNotification {
   duration?: number;
 }
 
+/**
+ * Module-level singleton: all useNotification() callers share this same
+ * reactive queue, ensuring a single global notification stream.
+ */
 const notifications = ref<AppNotification[]>([]);
 
 /**
@@ -18,7 +22,7 @@ export function useNotification() {
   const notify = (message: string, type: NotificationType = 'info', duration = 3000) => {
     const id = Math.random().toString(36).substring(2, 9);
     const newNotif: AppNotification = { id, message, type, duration };
-    
+
     // Logic for exclusive 'syncing' notifications (replace existing syncing if any)
     if (type === 'syncing') {
       notifications.value = notifications.value.filter(n => n.type !== 'syncing');

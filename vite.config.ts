@@ -1,8 +1,13 @@
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import { VitePWA } from 'vite-plugin-pwa'
+/// <reference types="vitest" />
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  test: {
+    environment: 'jsdom',
+    globals: true
+  },
   plugins: [
     vue(),
     VitePWA({
@@ -33,5 +38,15 @@ export default defineConfig({
       }
     })
   ],
-  base: '/tdee-max/', 
-})
+  base: '/tdee-max/',
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-chart': ['chart.js', 'vue-chartjs'],
+          'vendor-xlsx': ['xlsx']
+        }
+      }
+    }
+  }
+});

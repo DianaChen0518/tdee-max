@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
-import { useTdeeStore } from './store/useTdeeStore';
+import { useProfileStore } from './store/useProfileStore';
+import { useDailyStore } from './store/useDailyStore';
+import { useCloudStore } from './store/useCloudStore';
+import { useDietStore } from './store/useDietStore';
 import { exportTdeeData } from './utils/export';
 import { useNotification } from './composables/useNotification';
 import { useI18n } from 'vue-i18n';
@@ -18,7 +21,10 @@ import AppDialog from './components/AppDialog.vue';
 import SettingsModal from './components/SettingsModal.vue';
 import DataVisModal from './components/DataVisModal.vue';
 
-const store = useTdeeStore();
+const profileStore = useProfileStore();
+const dailyStore = useDailyStore();
+const cloudStore = useCloudStore();
+const dietStore = useDietStore();
 const notify = useNotification();
 const { t } = useI18n();
 
@@ -28,28 +34,36 @@ const showDataVis = ref(false);
 
 // Initialization and configuration checks
 onMounted(() => {
-  if (!store.isConfigured) {
+  if (!profileStore.isConfigured) {
     showSettings.value = true;
   }
 });
 
-watch(() => store.isConfigured, (configured) => {
-  if (!configured) {
-    showSettings.value = true;
+watch(
+  () => profileStore.isConfigured,
+  configured => {
+    if (!configured) {
+      showSettings.value = true;
+    }
   }
-});
+);
 
 // Event Handlers
 // Cloud Sync Handler (data auto-saves via useStorage; this button is for cloud backup only)
 const handleSync = async () => {
-  if (!store.isCloudSyncEnabled) {
+  if (!cloudStore.isCloudSyncEnabled) {
     notify.error(t('notifications.syncNotConfigured'));
     return;
   }
 
   const syncId = notify.syncing(t('notifications.syncing'));
 
-  const result = await store.syncToCloud();
+  const result = await cloudStore.syncToCloud(
+    dailyStore.database,
+    profileStore.userProfile,
+    dietStore.commonFoods,
+    dietStore.recipeCombos
+  );
 
   notify.remove(syncId);
   if (result.success) {
@@ -60,29 +74,25 @@ const handleSync = async () => {
 };
 
 const handleExport = () => {
-  exportTdeeData(store.database, store.userProfile);
+  exportTdeeData(dailyStore.database, profileStore.userProfile);
 };
 </script>
 
 <template>
   <div class="p-4 md:p-6 flex justify-center w-full min-h-screen transition-colors duration-300 relative">
-    
     <!-- Centralized Notification System -->
     <AppNotification />
     <AppDialog />
 
     <div class="w-full max-w-[1400px]">
-      
       <!-- Layout Header -->
-      <AppHeader 
-        @open-settings="showSettings = true" 
-        @open-datavis="showDataVis = true"
-      />
+      <AppHeader @open-settings="showSettings = true" @open-datavis="showDataVis = true" />
 
       <main class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 items-start relative">
-        
         <!-- Left Column: Base Stats & Workouts -->
-        <div class="flex flex-col gap-4 lg:sticky lg:top-6 transition-colors max-h-[100vh] lg:max-h-[calc(100vh-40px)] overflow-y-auto custom-scrollbar pr-1 pb-4">
+        <div
+          class="flex flex-col gap-4 lg:sticky lg:top-6 transition-colors max-h-[100vh] lg:max-h-[calc(100vh-40px)] overflow-y-auto custom-scrollbar pr-1 pb-4"
+        >
           <BaseStatsModule />
           <WorkoutModule />
         </div>
@@ -91,14 +101,10 @@ const handleExport = () => {
         <DietModule />
 
         <!-- Right Column: Dashboard & Actions -->
-        <DailyDashboard 
-          @sync="handleSync" 
-          @export="handleExport" 
-        />
-
+        <DailyDashboard @sync="handleSync" @export="handleExport" />
       </main>
     </div>
-    
+
     <!-- Modals -->
     <Transition name="fade-scale">
       <SettingsModal v-if="showSettings" @close="showSettings = false" />
@@ -108,4 +114,3 @@ const handleExport = () => {
     </Transition>
   </div>
 </template>
-

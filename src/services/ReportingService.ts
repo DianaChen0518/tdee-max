@@ -34,13 +34,13 @@ export class ReportingService {
    * Centralizes the definition of what constitutes a "valid" record.
    */
   static getProcessingRecords(
-    db: Database, 
-    profile: UserProfile, 
+    db: Database,
+    profile: UserProfile,
     filter?: (date: string, data: DayData) => boolean
   ): DaySummaryRecord[] {
     const records: DaySummaryRecord[] = [];
     const today = DateUtils.getLocalYYYYMMDD();
-    
+
     for (const [date, data] of Object.entries(db)) {
       // Logic fix: Exclude today (and future dates) from statistics to avoid skewed results
       if (date >= today) continue;
@@ -53,7 +53,7 @@ export class ReportingService {
       if (!hasData) continue;
 
       const summary = CalculatorService.calculateDailySummary(data, profile, date);
-      
+
       records.push({
         date,
         weight: data.weight,
@@ -76,7 +76,7 @@ export class ReportingService {
 
     const totalDeficit = records.reduce((sum, r) => sum + r.deficit, 0);
     const totalIntake = records.reduce((sum, r) => sum + r.intake, 0);
-    
+
     return {
       totalDeficit,
       avgIntake: totalIntake / records.length,
@@ -89,9 +89,9 @@ export class ReportingService {
    * Specifically handles monthly aggregation.
    */
   static getMonthlyReport(db: Database, profile: UserProfile, monthStr: string) {
-    const monthRecords = this.getProcessingRecords(db, profile, (date) => date.startsWith(monthStr));
+    const monthRecords = this.getProcessingRecords(db, profile, date => date.startsWith(monthStr));
     const stats = this.aggregateStats(monthRecords);
-    
+
     return {
       records: [...monthRecords].reverse(), // Newest first for UI lists
       stats

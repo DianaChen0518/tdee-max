@@ -116,7 +116,8 @@ export default {
       zh: '简体中文',
       en: 'English'
     },
-    rhrTip: '💡 基于 Tanaka 公式精确推导储备心率 (HRR)。后燃效应 (EPOC) 采用三段线性强度模型 + 时长修正因子 (0.7x - 1.1x) 计算，确保短时运动有补偿，长时运动有增益。',
+    rhrTip:
+      '💡 基于 Tanaka 公式精确推导储备心率 (HRR)。后燃效应 (EPOC) 采用三段线性强度模型 + 时长修正因子 (0.7x - 1.1x) 计算，确保短时运动有补偿，长时运动有增益。',
     tokenWarning: '🔒 安全提示：请创建仅有 gist 权限的 fine-grained PAT，切勿使用权限过大的 Token。',
     genders: {
       M: '男性',

@@ -116,8 +116,10 @@ export default {
       zh: 'Chinese',
       en: 'English'
     },
-    rhrTip: '💡 Precise heart rate reserve (HRR) derivation based on Tanaka formula. EPOC afterburn effects use a triple-segment intensity model with duration correction (0.7x - 1.1x) to ensure accurate compensation.',
-    tokenWarning: '🔒 Security: Create a fine-grained PAT with only "gist" scope. Never reuse tokens with broader permissions.',
+    rhrTip:
+      '💡 Precise heart rate reserve (HRR) derivation based on Tanaka formula. EPOC afterburn effects use a triple-segment intensity model with duration correction (0.7x - 1.1x) to ensure accurate compensation.',
+    tokenWarning:
+      '🔒 Security: Create a fine-grained PAT with only "gist" scope. Never reuse tokens with broader permissions.',
     genders: {
       M: 'Male',
       F: 'Female'

@@ -1,8 +1,8 @@
 import { Workout, DayData, UserProfile, DailySummaryMetrics } from '../types';
-import { 
-  BMR_CONSTANTS, 
-  THERMIC_EFFECT_OF_FOOD_RATIO, 
-  NEAT_CONSTANTS, 
+import {
+  BMR_CONSTANTS,
+  THERMIC_EFFECT_OF_FOOD_RATIO,
+  NEAT_CONSTANTS,
   EPOC_SEGMENTS,
   EPOC_DURATION_MODEL,
   AEROBIC_FORMULA_CONSTANTS,
@@ -25,18 +25,17 @@ interface EATResult {
  * Refactored to modular sub-calculators for Big Tech grade maintainability.
  */
 export class CalculatorService {
-  
   /**
    * Calculates age in fractional years with 365.25 day precision.
    */
   public static calculateAge(birthDateStr: string, referenceDateStr?: string): number {
     if (!birthDateStr) return 0;
-    
+
     const birthDate = new Date(birthDateStr);
     const refDate = referenceDateStr ? new Date(referenceDateStr) : new Date();
-    
+
     if (refDate < birthDate) return 0;
-    
+
     let years = refDate.getFullYear() - birthDate.getFullYear();
     const birthMonth = birthDate.getMonth();
     const birthDay = birthDate.getDate();
@@ -52,12 +51,12 @@ export class CalculatorService {
     if (lastAnniversary > refDate) {
       lastAnniversary.setFullYear(lastAnniversary.getFullYear() - 1);
     }
-    
+
     const nextAnniversary = new Date(lastAnniversary.getFullYear() + 1, birthMonth, birthDay);
     const msInYear = nextAnniversary.getTime() - lastAnniversary.getTime();
     const msSinceAnniversary = refDate.getTime() - lastAnniversary.getTime();
-    
-    return years + (msSinceAnniversary / msInYear);
+
+    return years + msSinceAnniversary / msInYear;
   }
 
   /**
@@ -65,7 +64,7 @@ export class CalculatorService {
    */
   public static calculateDailySummary(data: DayData, profile: UserProfile, dateStr?: string): DailySummaryMetrics {
     const age = this.calculateAge(profile.birthDate, dateStr);
-    
+
     // Safety check for critical metrics using the Guard layer
     if (!ValidationGuard.isProfileCalculable(profile)) {
       Logger.warn('Attempted calculation with incomplete profile', { profile });
@@ -79,11 +78,11 @@ export class CalculatorService {
     const bmr = this.calculateBMR(weight, profile.heightCm, age, profile.gender);
     const neat = this.calculateNEAT(weight, data.steps || 0);
     const { eat, epoc } = this.calculateEAT(data.workouts || [], weight, age, profile.gender, profile.rhr || 70, bmr);
-    
+
     // 2. Secondary Component Calculations
-    const intake = (data.foods || []).reduce((sum, f) => sum + (f.cals * (f.multiplier || 1)), 0);
+    const intake = (data.foods || []).reduce((sum, f) => sum + f.cals * (f.multiplier || 1), 0);
     const tef = this.calculateTEF(intake, bmr, neat, eat);
-    
+
     // 3. Aggregate Final Results
     const tdee = bmr + tef + neat + eat + epoc;
     const deficit = tdee - intake;
@@ -110,7 +109,7 @@ export class CalculatorService {
     if (w === 0 || !height || !age) return 0;
 
     const config = gender === 'M' ? BMR_CONSTANTS.MALES : BMR_CONSTANTS.FEMALES;
-    return (config.WEIGHT_MULT * w) + (config.HEIGHT_MULT * height) - (config.AGE_MULT * age) + config.OFFSET;
+    return config.WEIGHT_MULT * w + config.HEIGHT_MULT * height - config.AGE_MULT * age + config.OFFSET;
   }
 
   /**
@@ -120,10 +119,10 @@ export class CalculatorService {
     const w = ValidationGuard.sanitizeWeight(weight);
     const s = ValidationGuard.sanitizeSteps(steps);
     if (w === 0) return 0;
-    
+
     const baseStepBurn = s * NEAT_CONSTANTS.CALORIES_PER_STEP;
     const mechanicalEfficiencyOffset = s * w * NEAT_CONSTANTS.WEIGHT_COEFFICIENT;
-    
+
     return baseStepBurn + mechanicalEfficiencyOffset;
   }
 
@@ -142,53 +141,66 @@ export class CalculatorService {
    * Calculates Exercise Activity Thermogenesis (EAT) and EPOC.
    */
   public static calculateEAT(
-    workouts: Workout[], 
-    weight: number, 
-    age: number, 
-    gender: 'M' | 'F', 
+    workouts: Workout[],
+    weight: number,
+    age: number,
+    gender: 'M' | 'F',
     rhr: number,
     bmr: number
-  ): { eat: number, epoc: number } {
+  ): { eat: number; epoc: number } {
     const w = ValidationGuard.sanitizeWeight(weight);
     if (w === 0 || !workouts || workouts.length === 0) return { eat: 0, epoc: 0 };
-    
+
     const bmrPerMin = bmr / MINUTES_PER_DAY;
 
-    return workouts.reduce((res, wo) => {
-      const type = wo.type || 'aerobic';
-      
-      // Manual/Override Logic
-      if (type === 'manual') {
-        const kcal = typeof wo.kcal === 'string' ? parseFloat(wo.kcal) : (wo.kcal || 0);
-        res.eat += Math.max(0, kcal);
+    return workouts.reduce(
+      (res, wo) => {
+        const type = wo.type || 'aerobic';
+
+        // Manual/Override Logic
+        if (type === 'manual') {
+          const kcal = typeof wo.kcal === 'string' ? parseFloat(wo.kcal) : wo.kcal || 0;
+          res.eat += Math.max(0, kcal);
+          return res;
+        }
+
+        // Duration Logic
+        const mins = typeof wo.mins === 'string' ? parseFloat(wo.mins) : wo.mins || 0;
+        const secs = typeof wo.secs === 'string' ? parseFloat(wo.secs) : wo.secs || 0;
+        const totalMins = Math.max(0, mins + secs / 60);
+        if (totalMins <= 0) return res;
+
+        // Exercise Specific Calculations
+        if (type === 'aerobic') {
+          this.processAerobicWorkout(res, wo, w, age, gender, rhr, bmrPerMin, totalMins);
+        } else if (type === 'anaerobic') {
+          this.processAnaerobicWorkout(res, wo, w, totalMins);
+        }
+
         return res;
-      }
-
-      // Duration Logic
-      const mins = typeof wo.mins === 'string' ? parseFloat(wo.mins) : (wo.mins || 0);
-      const secs = typeof wo.secs === 'string' ? parseFloat(wo.secs) : (wo.secs || 0);
-      const totalMins = Math.max(0, mins + (secs / 60));
-      if (totalMins <= 0) return res;
-
-      // Exercise Specific Calculations
-      if (type === 'aerobic') {
-        this.processAerobicWorkout(res, wo, w, age, gender, rhr, bmrPerMin, totalMins);
-      } else if (type === 'anaerobic') {
-        this.processAnaerobicWorkout(res, wo, w, totalMins);
-      }
-
-      return res;
-    }, { eat: 0, epoc: 0 });
+      },
+      { eat: 0, epoc: 0 }
+    );
   }
 
-  private static processAerobicWorkout(res: EATResult, wo: Workout, weight: number, age: number, gender: 'M' | 'F', rhr: number, bmrPerMin: number, totalMins: number) {
-    const hr = typeof wo.hr === 'string' ? parseFloat(wo.hr) : (wo.hr || 0);
-    
+  private static processAerobicWorkout(
+    res: EATResult,
+    wo: Workout,
+    weight: number,
+    age: number,
+    gender: 'M' | 'F',
+    rhr: number,
+    bmrPerMin: number,
+    totalMins: number
+  ) {
+    const hr = typeof wo.hr === 'string' ? parseFloat(wo.hr) : wo.hr || 0;
+
     if (hr > AEROBIC_HR_MIN_THRESHOLD) {
       const config = gender === 'M' ? AEROBIC_FORMULA_CONSTANTS.MALES : AEROBIC_FORMULA_CONSTANTS.FEMALES;
-      const kcalPerMin = (config.INTERCEPT + config.HR_MULT * hr + config.WEIGHT_MULT * weight + config.AGE_MULT * age) / config.DIVISOR;
+      const kcalPerMin =
+        (config.INTERCEPT + config.HR_MULT * hr + config.WEIGHT_MULT * weight + config.AGE_MULT * age) / config.DIVISOR;
       const grossWorkoutKcal = Math.max(0, kcalPerMin * totalMins);
-      const netWorkoutKcal = Math.max(0, grossWorkoutKcal - (bmrPerMin * totalMins));
+      const netWorkoutKcal = Math.max(0, grossWorkoutKcal - bmrPerMin * totalMins);
 
       // EPOC Calculation with Guards
       const epocKcal = this.calculateEPOC(hr, rhr, age, netWorkoutKcal, totalMins);
@@ -199,15 +211,20 @@ export class CalculatorService {
   }
 
   private static processAnaerobicWorkout(res: EATResult, wo: Workout, weight: number, totalMins: number) {
-    const met = wo.intensity === 'high' ? MET_VALUES.RESISTANCE_HIGH : (wo.intensity === 'low' ? MET_VALUES.RESISTANCE_LOW : MET_VALUES.RESISTANCE_MEDIUM);
+    const met =
+      wo.intensity === 'high'
+        ? MET_VALUES.RESISTANCE_HIGH
+        : wo.intensity === 'low'
+          ? MET_VALUES.RESISTANCE_LOW
+          : MET_VALUES.RESISTANCE_MEDIUM;
     const netWorkoutKcal = Math.max(0, (met - 1) * weight * (totalMins / 60));
     res.eat += netWorkoutKcal;
   }
 
   private static calculateEPOC(hr: number, rhr: number, age: number, netWorkoutKcal: number, duration: number): number {
-    const maxHR = MAX_HR_TANAKA.INTERCEPT - (MAX_HR_TANAKA.AGE_MULT * age);
+    const maxHR = MAX_HR_TANAKA.INTERCEPT - MAX_HR_TANAKA.AGE_MULT * age;
     const safeHR = ValidationGuard.clampHeartRate(hr, rhr, MAX_HR_TANAKA.SAFETY_OFFSET);
-    
+
     const hrr = Math.max(0, maxHR - rhr);
     const pctHRR = hrr > 0 ? Math.max(0, Math.min(1.5, (safeHR - rhr) / hrr)) : 0;
 
@@ -224,9 +241,13 @@ export class CalculatorService {
     // Duration Factor
     let durFactor = 1.0;
     if (duration < EPOC_DURATION_MODEL.SHORT_MIN) {
-      durFactor = EPOC_DURATION_MODEL.SHORT_BASE + EPOC_DURATION_MODEL.SHORT_SLOPE * (duration / EPOC_DURATION_MODEL.SHORT_MIN);
+      durFactor =
+        EPOC_DURATION_MODEL.SHORT_BASE + EPOC_DURATION_MODEL.SHORT_SLOPE * (duration / EPOC_DURATION_MODEL.SHORT_MIN);
     } else if (duration < EPOC_DURATION_MODEL.LONG_MIN) {
-      durFactor = EPOC_DURATION_MODEL.LONG_BASE + EPOC_DURATION_MODEL.LONG_SLOPE * ((duration - EPOC_DURATION_MODEL.SHORT_MIN) / (EPOC_DURATION_MODEL.LONG_MIN - EPOC_DURATION_MODEL.SHORT_MIN));
+      durFactor =
+        EPOC_DURATION_MODEL.LONG_BASE +
+        EPOC_DURATION_MODEL.LONG_SLOPE *
+          ((duration - EPOC_DURATION_MODEL.SHORT_MIN) / (EPOC_DURATION_MODEL.LONG_MIN - EPOC_DURATION_MODEL.SHORT_MIN));
     } else {
       durFactor = EPOC_DURATION_MODEL.MAX_FACTOR;
     }

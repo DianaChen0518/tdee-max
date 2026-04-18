@@ -7,13 +7,16 @@ const { state, inputValue, dismiss } = useDialog();
 const { t } = useI18n();
 const inputRef = ref<HTMLInputElement | null>(null);
 
-watch(() => state.visible, async (visible) => {
-  if (visible && state.options.type === 'prompt') {
-    await nextTick();
-    inputRef.value?.focus();
-    inputRef.value?.select();
+watch(
+  () => state.visible,
+  async visible => {
+    if (visible && state.options.type === 'prompt') {
+      await nextTick();
+      inputRef.value?.focus();
+      inputRef.value?.select();
+    }
   }
-});
+);
 
 const onConfirm = () => {
   dismiss(state.options.type === 'prompt' ? inputValue.value : true);
@@ -26,12 +29,18 @@ const onCancel = () => {
 
 <template>
   <Transition name="dialog-fade">
-    <div v-if="state.visible" class="fixed inset-0 z-[9999] flex items-center justify-center p-4" @click.self="onCancel">
+    <div
+      v-if="state.visible"
+      class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      @click.self="onCancel"
+    >
       <!-- Backdrop -->
       <div class="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm"></div>
 
       <!-- Dialog Card -->
-      <div class="relative bg-white dark:bg-[#1e1e1e] rounded-card shadow-2xl max-w-md w-full border border-gray-200 dark:border-[#333] transform transition-all">
+      <div
+        class="relative bg-white dark:bg-[#1e1e1e] rounded-card shadow-2xl max-w-md w-full border border-gray-200 dark:border-[#333] transform transition-all"
+      >
         <div class="p-6">
           <!-- Title -->
           <h3 v-if="state.options.title" class="text-lg font-bold text-gray-800 dark:text-white mb-2 leading-tight">
@@ -39,7 +48,10 @@ const onCancel = () => {
           </h3>
 
           <!-- Message -->
-          <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-line" :class="state.options.title ? 'mb-5' : 'mb-5 mt-1'">
+          <p
+            class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed whitespace-pre-line"
+            :class="state.options.title ? 'mb-5' : 'mb-5 mt-1'"
+          >
             {{ state.options.message }}
           </p>
 
@@ -65,9 +77,11 @@ const onCancel = () => {
           <button
             @click="onConfirm"
             class="flex-1 px-4 py-3 text-sm font-bold transition-colors rounded-br-card border-l border-gray-100 dark:border-[#333]"
-            :class="state.options.danger
-              ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
-              : 'text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20'"
+            :class="
+              state.options.danger
+                ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
+                : 'text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20'
+            "
           >
             {{ state.options.confirmText || t('dialog.confirm') }}
           </button>
@@ -83,13 +97,17 @@ const onCancel = () => {
   transition: opacity 0.2s ease-out;
 }
 .dialog-fade-enter-active > div:last-child {
-  transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+  transition:
+    transform 0.2s ease-out,
+    opacity 0.2s ease-out;
 }
 .dialog-fade-leave-active {
   transition: opacity 0.15s ease-in;
 }
 .dialog-fade-leave-active > div:last-child {
-  transition: transform 0.15s ease-in, opacity 0.15s ease-in;
+  transition:
+    transform 0.15s ease-in,
+    opacity 0.15s ease-in;
 }
 .dialog-fade-enter-from,
 .dialog-fade-leave-to {

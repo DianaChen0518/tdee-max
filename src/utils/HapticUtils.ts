@@ -3,7 +3,6 @@
  * Provides subtle tactile confirmation for user interactions.
  */
 export class HapticUtils {
-  
   /**
    * Triggers a light vibration 'tick'.
    * @param duration Duration in milliseconds (default 15ms for a light tick)

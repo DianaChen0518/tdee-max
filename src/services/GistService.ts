@@ -25,7 +25,11 @@ export class GistService {
   /**
    * Pushes the current state to a GitHub Gist.
    */
-  static async pushToCloud(token: string, gistId: string | null, payload: Record<string, unknown>): Promise<GistSyncResult> {
+  static async pushToCloud(
+    token: string,
+    gistId: string | null,
+    payload: Record<string, unknown>
+  ): Promise<GistSyncResult> {
     if (!token) return { success: false, message: 'Missing GitHub Token' };
 
     try {
@@ -35,11 +39,11 @@ export class GistService {
       const res = await fetch(url, {
         method,
         headers: {
-          'Authorization': `token ${token}`,
-          'Accept': 'application/vnd.github.v3+json'
+          Authorization: `token ${token}`,
+          Accept: 'application/vnd.github.v3+json'
         },
         body: JSON.stringify({
-          description: "TDEE Max Cloud Backup (Automated)",
+          description: 'TDEE Max Cloud Backup (Automated)',
           public: false,
           files: {
             [this.FILENAME]: {
@@ -54,10 +58,10 @@ export class GistService {
       }
 
       const data = await res.json();
-      return { 
-        success: true, 
-        message: 'Successfully synchronized with GitHub Gist', 
-        data: { id: data.id } 
+      return {
+        success: true,
+        message: 'Successfully synchronized with GitHub Gist',
+        data: { id: data.id }
       };
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : String(error);
@@ -74,8 +78,8 @@ export class GistService {
     try {
       const res = await fetch(`${this.API_BASE}/${gistId}`, {
         headers: {
-          'Authorization': `token ${token}`,
-          'Accept': 'application/vnd.github.v3+json'
+          Authorization: `token ${token}`,
+          Accept: 'application/vnd.github.v3+json'
         }
       });
 
@@ -90,8 +94,8 @@ export class GistService {
         return { success: false, message: 'Backup file not found in Gist' };
       }
 
-      return { 
-        success: true, 
+      return {
+        success: true,
         message: 'Successfully pulled data from cloud',
         data: JSON.parse(content)
       };

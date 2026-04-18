@@ -7,10 +7,10 @@
   --radius-card: 24px;
   --radius-inner: 16px;
   --radius-button: 12px;
-  
+
   --shadow-premium: 0 8px 30px rgba(0, 0, 0, 0.04);
   --shadow-hover: 0 10px 40px rgba(0, 0, 0, 0.08);
-  
+
   /* Brand Colors */
   --color-primary: #2563eb; /* Blue-600 */
   --color-secondary: #7c3aed; /* Purple-600 */
@@ -19,14 +19,21 @@
 body {
   /* 让 body 自动适应白天和黑夜的底色 */
   @apply bg-gray-100 dark:bg-[#121212] text-gray-900 dark:text-white min-h-screen;
-  transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button { 
-  -webkit-appearance: none; margin: 0; 
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
-.custom-scrollbar::-webkit-scrollbar { width: 6px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: rgba(156, 163, 175, 0.3);
   border-radius: 10px;
@@ -48,17 +55,17 @@ input[type=number]::-webkit-outer-spin-button {
     @apply btn-header bg-blue-50 hover:bg-blue-100 text-blue-700 
            dark:bg-blue-900/30 dark:hover:bg-blue-900/50 dark:text-blue-300;
   }
-  
+
   .btn-header-indigo {
     @apply btn-header bg-indigo-50 hover:bg-indigo-100 text-indigo-700 
            dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 dark:text-indigo-300;
   }
-  
+
   .btn-header-gray {
     @apply btn-header bg-gray-50 hover:bg-gray-100 text-gray-700 
            dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200;
   }
-  
+
   .btn-header-emerald {
     @apply btn-header bg-emerald-50 hover:bg-emerald-100 text-emerald-700 
            dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 dark:text-emerald-300;
@@ -66,16 +73,37 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 /* Global Theme Transition — scoped to visible element types (P2: replaces * for performance) */
-body, div, main, section, nav, header, footer,
-button, input, select, textarea,
-h1, h2, h3, h4, h5, h6, p, span, a, label {
-  transition: background-color 0.4s ease,
-              border-color 0.4s ease,
-              color 0.3s ease;
+body,
+div,
+main,
+section,
+nav,
+header,
+footer,
+button,
+input,
+select,
+textarea,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+a,
+label {
+  transition:
+    background-color 0.4s ease,
+    border-color 0.4s ease,
+    color 0.3s ease;
 }
 
 /* Allow faster interaction transitions to override the theme transition */
-.transition-all, .transition-colors, .active\:scale-95:active {
+.transition-all,
+.transition-colors,
+.active\:scale-95:active {
   transition-duration: 0.2s !important;
 }
 

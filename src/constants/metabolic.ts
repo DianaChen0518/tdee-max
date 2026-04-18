@@ -32,9 +32,9 @@ export const NEAT_CONSTANTS = {
  * 3. >=0.80 HRR: 11% - 21%
  */
 export const EPOC_SEGMENTS = {
-  LOW: { threshold: 0.60, base: 0.03, slope: 0.05 },
-  MODERATE: { threshold: 0.80, base: 0.06, slope: 0.25 },
-  HIGH: { base: 0.11, slope: 0.20 }
+  LOW: { threshold: 0.6, base: 0.03, slope: 0.05 },
+  MODERATE: { threshold: 0.8, base: 0.06, slope: 0.25 },
+  HIGH: { base: 0.11, slope: 0.2 }
 };
 
 /**
@@ -63,7 +63,7 @@ export const AEROBIC_FORMULA_CONSTANTS = {
     INTERCEPT: -20.4022,
     HR_MULT: 0.4472,
     WEIGHT_MULT: -0.1263,
-    AGE_MULT: 0.0740,
+    AGE_MULT: 0.074,
     DIVISOR: 4.184
   }
 };

@@ -7,7 +7,6 @@ import { generateId } from './IdUtils';
  * Implements "Dumb Data" transformation patterns.
  */
 export class DayManager {
-  
   /**
    * Initializes a day record with intelligent weight carry-over.
    */
@@ -24,11 +23,11 @@ export class DayManager {
       defaultWeight = database[pastDates[0]].weight;
     }
 
-    return { 
-      weight: defaultWeight, 
-      steps: 0, 
-      workouts: [], 
-      foods: [] 
+    return {
+      weight: defaultWeight,
+      steps: 0,
+      workouts: [],
+      foods: []
     };
   }
 
@@ -39,9 +38,9 @@ export class DayManager {
     const pastDates = Object.keys(database)
       .filter(d => d < dateStr && database[d].foods.length > 0)
       .sort((a, b) => b.localeCompare(a));
-    
+
     if (pastDates.length === 0) return [];
-    
+
     // Deep copy to prevent state leakage
     return database[pastDates[0]].foods.map(f => ({ ...f, id: generateId() }));
   }
@@ -50,11 +49,7 @@ export class DayManager {
    * Copies foods from one day/meal-type to another.
    * Handles deduplication and multiplier accumulation.
    */
-  public static copyFoods(
-    sourceFoods: Food[], 
-    targetFoods: Food[], 
-    mealTypeFilter: string
-  ): Food[] {
+  public static copyFoods(sourceFoods: Food[], targetFoods: Food[], mealTypeFilter: string): Food[] {
     const foodsToCopy = sourceFoods.filter(f => (f.mealType || 'uncategorized') === mealTypeFilter);
     if (foodsToCopy.length === 0) return targetFoods;
 
@@ -62,19 +57,19 @@ export class DayManager {
 
     foodsToCopy.forEach(sourceFood => {
       const targetType = sourceFood.mealType || 'uncategorized';
-      const existing = newTargetFoods.find(f => 
-        f.name === sourceFood.name && (f.mealType || 'uncategorized') === targetType
+      const existing = newTargetFoods.find(
+        f => f.name === sourceFood.name && (f.mealType || 'uncategorized') === targetType
       );
-      
+
       const multiplierToAdd = Math.max(1, sourceFood.multiplier || 1);
-      
+
       if (existing) {
         existing.multiplier = (existing.multiplier || 1) + multiplierToAdd;
       } else {
-        newTargetFoods.push({ 
-          ...sourceFood, 
+        newTargetFoods.push({
+          ...sourceFood,
           id: generateId(),
-          multiplier: multiplierToAdd 
+          multiplier: multiplierToAdd
         });
       }
     });

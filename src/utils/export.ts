@@ -7,7 +7,7 @@ import i18n from '../i18n';
 export const exportTdeeData = (database: Database, userProfile: UserProfile) => {
   const records = ReportingService.getProcessingRecords(database, userProfile);
   const { t } = i18n.global;
-  
+
   const exportData = records.map(r => ({
     [t('export.columns.date')]: r.date,
     [t('export.columns.weight')]: r.weight,

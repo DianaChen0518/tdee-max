@@ -9,11 +9,7 @@ export class ValidationGuard {
    * Validates if a user profile has minimum required fields for calculation.
    */
   static isProfileCalculable(profile: UserProfile): boolean {
-    return !!(
-      profile.birthDate && 
-      profile.heightCm > 0 && 
-      profile.gender
-    );
+    return !!(profile.birthDate && profile.heightCm > 0 && profile.gender);
   }
 
   /**

@@ -67,7 +67,7 @@ describe('CalculatorService', () => {
       };
 
       const summary = CalculatorService.calculateDailySummary(data, mockProfile, referenceDate);
-      
+
       // BMR (80kg, 175cm, 34y, M) = 1728.75
       // NEAT (80kg, 10000 steps) = 710
       // TEF (2000 kcal intake) = 200
@@ -86,15 +86,17 @@ describe('CalculatorService', () => {
       const rhr = 70;
       const bmr = 1728;
 
-      const workouts = [{
-        type: 'aerobic' as any,
-        hr: 150,
-        mins: 30,
-        secs: 0
-      }];
+      const workouts = [
+        {
+          type: 'aerobic' as any,
+          hr: 150,
+          mins: 30,
+          secs: 0
+        }
+      ];
 
       const { eat, epoc } = CalculatorService.calculateEAT(workouts, weight, age, gender, rhr, bmr);
-      
+
       // Expected logic: gross burn - bmr offset
       expect(eat).toBeGreaterThan(0);
       expect(epoc).toBeGreaterThan(0);
@@ -102,13 +104,15 @@ describe('CalculatorService', () => {
 
     it('should calculate resistance training using MET model', () => {
       const weight = 80;
-      const workouts = [{
-        type: 'anaerobic' as any,
-        intensity: 'high' as any,
-        mins: 60,
-        secs: 0
-      }];
-      
+      const workouts = [
+        {
+          type: 'anaerobic' as any,
+          intensity: 'high' as any,
+          mins: 60,
+          secs: 0
+        }
+      ];
+
       const { eat } = CalculatorService.calculateEAT(workouts, weight, 30, 'M', 70, 1800);
       // MET for High Resistance = 7.0
       // Net Burn = (7 - 1) * 80 * (60/60) = 6 * 80 = 480

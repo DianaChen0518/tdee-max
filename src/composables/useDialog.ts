@@ -54,9 +54,9 @@ export function useDialog() {
     if (state.resolve) dismiss(false);
 
     const opts = typeof options === 'string' ? { message: options } : options;
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       state.options = { ...opts, type: 'confirm' };
-      state.resolve = (val) => resolve(val as boolean);
+      state.resolve = val => resolve(val as boolean);
       inputValue.value = '';
       state.visible = true;
     });
@@ -67,9 +67,9 @@ export function useDialog() {
   ): Promise<string | null> => {
     if (state.resolve) dismiss(null);
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       state.options = { ...options, type: 'prompt' };
-      state.resolve = (val) => resolve(val as string | null);
+      state.resolve = val => resolve(val as string | null);
       inputValue.value = options.defaultValue || '';
       state.visible = true;
     });
