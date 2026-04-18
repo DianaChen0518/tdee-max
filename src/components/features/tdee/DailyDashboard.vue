@@ -2,17 +2,27 @@
 import { useTdeeStore } from '../../../store/useTdeeStore';
 import { useI18n } from 'vue-i18n';
 import { HapticUtils } from '../../../utils/HapticUtils';
+import { useNotification } from '../../../composables/useNotification';
+import { useDialog } from '../../../composables/useDialog';
 
 const store = useTdeeStore();
 const { t } = useI18n();
+const notify = useNotification();
+const dialog = useDialog();
 
-const emit = defineEmits(['save', 'reset', 'export']);
+const emit = defineEmits(['sync', 'export']);
 
-const handleDelete = () => {
-  if (confirm(t('dashboard.confirmReset', { date: store.selectedDate }))) {
+const handleDelete = async () => {
+  const confirmed = await dialog.confirm({
+    title: '⚠️ ' + t('dashboard.reset'),
+    message: t('dashboard.confirmReset', { date: store.selectedDate }),
+    confirmText: t('dashboard.reset'),
+    danger: true
+  });
+  if (confirmed) {
     HapticUtils.lightTick();
     store.clearDayData();
-    emit('reset');
+    notify.success(t('notifications.resetSuccess'));
   }
 };
 </script>
@@ -105,8 +115,8 @@ const handleDelete = () => {
     <!-- Persistent Actions -->
     <div class="bg-white dark:bg-[#1e1e1e] p-5 rounded-card border border-gray-100 dark:border-[#333] shadow-premium dark:shadow-none shrink-0 flex flex-col gap-3 transition-colors">
       <div class="flex gap-3">
-        <button @click="HapticUtils.lightTick(); emit('save')" class="flex-1 bg-green-600 hover:bg-green-500 text-white py-2.5 rounded-btn text-sm font-bold shadow-md transition-colors">
-          💾 {{ t('dashboard.save') }}
+        <button @click="HapticUtils.lightTick(); emit('sync')" class="flex-1 bg-green-600 hover:bg-green-500 text-white py-2.5 rounded-btn text-sm font-bold shadow-md transition-colors">
+          ☁️ {{ t('dashboard.sync') }}
         </button>
         <button @click="handleDelete" class="flex-1 bg-red-600/10 hover:bg-red-600/20 text-red-600 dark:text-red-400 py-2.5 rounded-btn text-sm font-bold transition-colors">
           🗑️ {{ t('dashboard.reset') }}

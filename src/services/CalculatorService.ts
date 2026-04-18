@@ -7,10 +7,18 @@ import {
   EPOC_DURATION_MODEL,
   AEROBIC_FORMULA_CONSTANTS,
   MET_VALUES,
-  MAX_HR_TANAKA
+  MAX_HR_TANAKA,
+  MINUTES_PER_DAY,
+  AEROBIC_HR_MIN_THRESHOLD
 } from '../constants/metabolic';
 import { ValidationGuard } from '../utils/ValidationGuard';
 import { Logger } from '../utils/Logger';
+
+/** Accumulator for Exercise Activity Thermogenesis results. */
+interface EATResult {
+  eat: number;
+  epoc: number;
+}
 
 /**
  * High-precision metabolic calculation engine.
@@ -144,7 +152,7 @@ export class CalculatorService {
     const w = ValidationGuard.sanitizeWeight(weight);
     if (w === 0 || !workouts || workouts.length === 0) return { eat: 0, epoc: 0 };
     
-    const bmrPerMin = bmr / 1440;
+    const bmrPerMin = bmr / MINUTES_PER_DAY;
 
     return workouts.reduce((res, wo) => {
       const type = wo.type || 'aerobic';
@@ -173,10 +181,10 @@ export class CalculatorService {
     }, { eat: 0, epoc: 0 });
   }
 
-  private static processAerobicWorkout(res: any, wo: Workout, weight: number, age: number, gender: 'M' | 'F', rhr: number, bmrPerMin: number, totalMins: number) {
+  private static processAerobicWorkout(res: EATResult, wo: Workout, weight: number, age: number, gender: 'M' | 'F', rhr: number, bmrPerMin: number, totalMins: number) {
     const hr = typeof wo.hr === 'string' ? parseFloat(wo.hr) : (wo.hr || 0);
     
-    if (hr > 80) {
+    if (hr > AEROBIC_HR_MIN_THRESHOLD) {
       const config = gender === 'M' ? AEROBIC_FORMULA_CONSTANTS.MALES : AEROBIC_FORMULA_CONSTANTS.FEMALES;
       const kcalPerMin = (config.INTERCEPT + config.HR_MULT * hr + config.WEIGHT_MULT * weight + config.AGE_MULT * age) / config.DIVISOR;
       const grossWorkoutKcal = Math.max(0, kcalPerMin * totalMins);
@@ -190,7 +198,7 @@ export class CalculatorService {
     }
   }
 
-  private static processAnaerobicWorkout(res: any, wo: Workout, weight: number, totalMins: number) {
+  private static processAnaerobicWorkout(res: EATResult, wo: Workout, weight: number, totalMins: number) {
     const met = wo.intensity === 'high' ? MET_VALUES.RESISTANCE_HIGH : (wo.intensity === 'low' ? MET_VALUES.RESISTANCE_LOW : MET_VALUES.RESISTANCE_MEDIUM);
     const netWorkoutKcal = Math.max(0, (met - 1) * weight * (totalMins / 60));
     res.eat += netWorkoutKcal;

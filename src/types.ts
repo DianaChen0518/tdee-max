@@ -26,6 +26,8 @@ export type IntensityLevel = 'low' | 'med' | 'high';
  * Individual exercise record.
  */
 export interface Workout {
+  /** Unique identifier for stable list rendering */
+  id?: string;
   /** Type of exercise determining the calculation method used */
   type?: WorkoutType;
   /** Average heart rate (BPM) - used for aerobic calculations */
@@ -49,6 +51,8 @@ export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'uncategoriz
  * Food item entry.
  */
 export interface Food {
+  /** Unique identifier for stable list rendering */
+  id?: string;
   /** Display name of the food */
   name: string;
   /** Calorie content per unit/multiplier */

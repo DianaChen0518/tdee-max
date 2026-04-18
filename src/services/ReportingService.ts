@@ -1,5 +1,6 @@
 import { CalculatorService } from './CalculatorService';
 import { DateUtils } from '../utils/DateUtils';
+import { KCAL_PER_GRAM_FAT } from '../constants/metabolic';
 import { Database, UserProfile, DayData } from '../types';
 
 /**
@@ -79,7 +80,7 @@ export class ReportingService {
     return {
       totalDeficit,
       avgIntake: totalIntake / records.length,
-      theoreticalFatChangeGrams: totalDeficit / 7.7,
+      theoreticalFatChangeGrams: totalDeficit / KCAL_PER_GRAM_FAT,
       recordCount: records.length
     };
   }

@@ -1,4 +1,5 @@
 import { Database, DayData, Food } from '../types';
+import { generateId } from './IdUtils';
 
 /**
  * Utility for managing daily data operations.
@@ -42,7 +43,7 @@ export class DayManager {
     if (pastDates.length === 0) return [];
     
     // Deep copy to prevent state leakage
-    return database[pastDates[0]].foods.map(f => ({ ...f }));
+    return database[pastDates[0]].foods.map(f => ({ ...f, id: generateId() }));
   }
 
   /**
@@ -72,6 +73,7 @@ export class DayManager {
       } else {
         newTargetFoods.push({ 
           ...sourceFood, 
+          id: generateId(),
           multiplier: multiplierToAdd 
         });
       }

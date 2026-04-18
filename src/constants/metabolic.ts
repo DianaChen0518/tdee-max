@@ -51,8 +51,6 @@ export const EPOC_DURATION_MODEL = {
   MAX_FACTOR: 1.1
 };
 
-export const EPOC_DURATION_THRESHOLD_MINS = 20;
-
 export const AEROBIC_FORMULA_CONSTANTS = {
   MALES: {
     INTERCEPT: -55.0969,
@@ -81,3 +79,17 @@ export const MAX_HR_TANAKA = {
   AGE_MULT: 0.7,
   SAFETY_OFFSET: 10 // Buffer for sensor anomalies
 };
+
+// --- General Constants (P3: extracted magic numbers) ---
+
+/** Minutes in a day — used for BMR-per-minute derivation. */
+export const MINUTES_PER_DAY = 1440;
+
+/** Minimum HR (bpm) for aerobic calorie calculation to activate. */
+export const AEROBIC_HR_MIN_THRESHOLD = 80;
+
+/** kJ → kcal conversion divisor (1 kcal = 4.184 kJ). */
+export const KJ_TO_KCAL_FACTOR = 4.184;
+
+/** kcal energy equivalent of 1 gram of body fat. */
+export const KCAL_PER_GRAM_FAT = 7.7;

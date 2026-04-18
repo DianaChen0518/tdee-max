@@ -1,10 +1,21 @@
 /**
  * Service for interacting with GitHub Gist API for cloud data synchronization.
  */
+
+/** Shape of the cloud backup data exchanged with Gist. */
+export interface CloudBackupData {
+  id?: string;
+  userProfile?: Record<string, unknown>;
+  database?: Record<string, unknown>;
+  commonFoods?: unknown[];
+  recipeCombos?: unknown[];
+  [key: string]: unknown;
+}
+
 export interface GistSyncResult {
   success: boolean;
   message: string;
-  data?: any;
+  data?: CloudBackupData;
 }
 
 export class GistService {
@@ -14,7 +25,7 @@ export class GistService {
   /**
    * Pushes the current state to a GitHub Gist.
    */
-  static async pushToCloud(token: string, gistId: string | null, payload: any): Promise<GistSyncResult> {
+  static async pushToCloud(token: string, gistId: string | null, payload: Record<string, unknown>): Promise<GistSyncResult> {
     if (!token) return { success: false, message: 'Missing GitHub Token' };
 
     try {
@@ -48,8 +59,9 @@ export class GistService {
         message: 'Successfully synchronized with GitHub Gist', 
         data: { id: data.id } 
       };
-    } catch (error: any) {
-      return { success: false, message: `Network Error: ${error.message}` };
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      return { success: false, message: `Network Error: ${msg}` };
     }
   }
 
@@ -83,8 +95,9 @@ export class GistService {
         message: 'Successfully pulled data from cloud',
         data: JSON.parse(content)
       };
-    } catch (error: any) {
-      return { success: false, message: error.message };
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      return { success: false, message: msg };
     }
   }
 }

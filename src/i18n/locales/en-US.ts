@@ -11,6 +11,7 @@ export default {
   dashboard: {
     title: 'Energy Dashboard',
     save: 'Save Daily',
+    sync: 'Sync to Cloud',
     reset: 'Clear / Reset',
     export: 'Export History to Excel',
     intake: 'Intake',
@@ -67,12 +68,14 @@ export default {
     syncing: 'Syncing to Gist cloud...',
     syncSuccess: 'Cloud backup successful!',
     syncError: 'Cloud sync failed: {msg}',
+    syncNotConfigured: 'Cloud sync not configured. Add a GitHub Token in Settings first.',
     quickFoodSaved: 'Saved to Quick Library',
     comboSaved: 'Combo [{name}] saved',
     comboLoaded: 'Combo [{name}] loaded',
     copyTomorrowSuccess: '{name} successfully sent to tomorrow',
     resetSuccess: 'Daily data reset',
-    comboEmptyError: 'No items in this meal to save!'
+    comboEmptyError: 'No items in this meal to save!',
+    cloudDataInvalid: 'Cloud data validation failed: {errors}'
   },
   workout: {
     title: 'Workout Logging',
@@ -114,6 +117,7 @@ export default {
       en: 'English'
     },
     rhrTip: '💡 Precise heart rate reserve (HRR) derivation based on Tanaka formula. EPOC afterburn effects use a triple-segment intensity model with duration correction (0.7x - 1.1x) to ensure accurate compensation.',
+    tokenWarning: '🔒 Security: Create a fine-grained PAT with only "gist" scope. Never reuse tokens with broader permissions.',
     genders: {
       M: 'Male',
       F: 'Female'
@@ -159,7 +163,7 @@ export default {
       energyAgainst: '🔥 Energy Balance (TDEE vs Intake)',
       weightLabel: 'Weight (kg)',
       intakeLabel: 'Intake (Energy)',
-      tdeeLabel: 'TDEE (Consulmed)'
+      tdeeLabel: 'TDEE (Consumed)'
     },
     details: 'Recent Details (Last 7)'
   },
@@ -180,5 +184,9 @@ export default {
       egg: 'Boiled Egg (1pc)',
       coffee: 'Black Coffee'
     }
+  },
+  dialog: {
+    confirm: 'Confirm',
+    cancel: 'Cancel'
   }
 };

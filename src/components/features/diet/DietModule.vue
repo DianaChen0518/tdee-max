@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useTdeeStore } from '../../../store/useTdeeStore';
-import { MealType, Food } from '../../../types';
+import { MealType, Food, RecipeCombo } from '../../../types';
 import { useNotification } from '../../../composables/useNotification';
+import { useDialog } from '../../../composables/useDialog';
 import { useI18n } from 'vue-i18n';
 import { HapticUtils } from '../../../utils/HapticUtils';
+import { KJ_TO_KCAL_FACTOR } from '../../../constants/metabolic';
 
 const store = useTdeeStore();
 const notify = useNotification();
+const dialog = useDialog();
 const { t } = useI18n();
 
 const getAutoMealType = (): MealType => {
@@ -33,20 +36,13 @@ const customFood = ref<{ name: string; cals: number | null; unit: 'kcal' | 'kJ' 
 
 const addFoodItemHelper = (name: string, cals: number) => {
   HapticUtils.lightTick();
-  const existing = store.activeDay.foods.find(f => 
-    f.name === name && (f.mealType || 'uncategorized') === currentMealType.value
-  );
-  if (existing) {
-    existing.multiplier = (existing.multiplier || 1) + 1;
-  } else {
-    store.activeDay.foods.push({ name, cals, multiplier: 1, mealType: currentMealType.value });
-  }
+  store.addFoodToDay(name, cals, currentMealType.value);
 };
 
 const addFood = () => {
   const cals = customFood.value.cals;
   if (customFood.value.name && cals !== null && !isNaN(cals) && cals >= 0) {
-    const finalCals = customFood.value.unit === 'kJ' ? (cals / 4.184) : cals;
+    const finalCals = customFood.value.unit === 'kJ' ? (cals / KJ_TO_KCAL_FACTOR) : cals;
     addFoodItemHelper(customFood.value.name, finalCals);
     customFood.value.name = ''; 
     customFood.value.cals = null;
@@ -56,26 +52,28 @@ const addFood = () => {
 const saveQuickFood = () => {
   const cals = customFood.value.cals;
   if (customFood.value.name && cals !== null && !isNaN(cals) && cals >= 0) {
-    const finalCals = customFood.value.unit === 'kJ' ? (cals / 4.184) : cals;
-    store.commonFoods.push({ name: customFood.value.name, cals: finalCals });
+    const finalCals = customFood.value.unit === 'kJ' ? (cals / KJ_TO_KCAL_FACTOR) : cals;
+    store.addCommonFood({ name: customFood.value.name, cals: finalCals });
     customFood.value.name = ''; 
     customFood.value.cals = null;
     notify.success(t('notifications.quickFoodSaved'));
   }
 };
 
-const saveCombo = (mealType: string) => {
+const saveCombo = async (mealType: string) => {
   const foods = store.activeDay.foods.filter(f => (f.mealType || 'uncategorized') === mealType);
   if (foods.length === 0) {
     notify.error(t('notifications.comboEmptyError'));
     return;
   }
-  const comboName = prompt(
-    t('diet.comboPrompt', { count: foods.length }), 
-    t('diet.comboDefaultName', { meal: mealTypeLabels.value[mealType as MealType] })
-  );
+  const comboName = await dialog.prompt({
+    title: '💾 ' + t('diet.saveCombo'),
+    message: t('diet.comboPrompt', { count: foods.length }),
+    defaultValue: t('diet.comboDefaultName', { meal: mealTypeLabels.value[mealType as MealType] }),
+    placeholder: t('diet.placeholderFood')
+  });
   if (comboName) {
-    store.recipeCombos.push({
+    store.addRecipeCombo({
       id: Date.now().toString(),
       name: comboName,
       foods: foods.map(f => ({ ...f }))
@@ -84,17 +82,8 @@ const saveCombo = (mealType: string) => {
   }
 };
 
-const applyCombo = (combo: any) => {
-  combo.foods.forEach((cf: Food) => {
-    const existing = store.activeDay.foods.find((f: Food) => 
-      f.name === cf.name && (f.mealType || 'uncategorized') === currentMealType.value
-    );
-    if (existing) {
-      existing.multiplier = (existing.multiplier || 1) + (cf.multiplier || 1);
-    } else {
-      store.activeDay.foods.push({ ...cf, mealType: currentMealType.value });
-    }
-  });
+const applyCombo = (combo: RecipeCombo) => {
+  store.applyComboToDay(combo, currentMealType.value);
   notify.success(t('notifications.comboLoaded', { name: combo.name }));
 };
 
@@ -157,7 +146,7 @@ const groupedFoods = computed(() => {
           <button @click="applyCombo(combo)" class="text-[11px] font-bold px-3 py-1.5 hover:bg-white dark:hover:bg-purple-900/40 text-purple-700 dark:text-purple-300 transition-colors">
             {{ combo.name }}
           </button>
-          <button @click="store.recipeCombos.splice(i,1)" class="px-2 py-1.5 text-purple-400 dark:text-purple-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 text-[10px] border-l border-purple-200 dark:border-purple-800/50">✕</button>
+          <button @click="store.removeRecipeCombo(i)" class="px-2 py-1.5 text-purple-400 dark:text-purple-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 text-[10px] border-l border-purple-200 dark:border-purple-800/50">✕</button>
         </div>
       </div>
     </div>
@@ -165,11 +154,11 @@ const groupedFoods = computed(() => {
     <!-- Common Foods Library -->
     <div class="mb-3 shrink-0">
       <div class="flex flex-wrap gap-2 max-h-[110px] overflow-y-auto pr-1 custom-scrollbar">
-        <div v-for="(f, i) in store.commonFoods" :key="i" class="flex items-center bg-gray-100/80 dark:bg-[#2c2c2c] border border-gray-200 dark:border-[#444] rounded-full overflow-hidden transition-colors hover:shadow-sm">
+        <div v-for="(f, i) in store.commonFoods" :key="f.id" class="flex items-center bg-gray-100/80 dark:bg-[#2c2c2c] border border-gray-200 dark:border-[#444] rounded-full overflow-hidden transition-colors hover:shadow-sm">
           <button @click="addFoodItemHelper(f.name, f.cals)" class="text-[11px] font-medium px-3 py-1.5 hover:bg-white dark:hover:bg-[#3c3c3c] text-gray-700 dark:text-gray-200">
             {{ f.name }} <span class="opacity-60 ml-0.5">{{ Math.round(f.cals) }}</span>
           </button>
-          <button @click="store.commonFoods.splice(i,1)" class="px-2 py-1.5 text-gray-400 dark:text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 text-[10px] border-l border-gray-200 dark:border-[#444]">✕</button>
+          <button @click="store.removeCommonFood(i)" class="px-2 py-1.5 text-gray-400 dark:text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 text-[10px] border-l border-gray-200 dark:border-[#444]">✕</button>
         </div>
       </div>
     </div>
@@ -192,13 +181,13 @@ const groupedFoods = computed(() => {
             </div>
             
             <transition-group name="list" tag="div">
-              <div v-for="f in groupedFoods[kind]" :key="f.name" class="flex justify-between items-center bg-white dark:bg-[#252525] p-3 rounded-inner border border-slate-100/80 dark:border-[#333] shadow-sm mb-2 w-full gap-2">
+              <div v-for="f in groupedFoods[kind]" :key="f.id" class="flex justify-between items-center bg-white dark:bg-[#252525] p-3 rounded-inner border border-slate-100/80 dark:border-[#333] shadow-sm mb-2 w-full gap-2">
                 <span class="text-[15px] font-semibold truncate text-slate-800 dark:text-white flex-1 tracking-tight">{{ f.name }}</span>
                 
                 <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-[#1e1e1e] border border-slate-100 dark:border-[#444] rounded-full px-2 py-1 shrink-0">
-                  <button @click="() => { HapticUtils.lightTick(); if((f.multiplier || 1) > 1) { f.multiplier = (f.multiplier || 1) - 1; } else { store.activeDay.foods.splice(store.activeDay.foods.indexOf(f), 1); } }" class="text-slate-400 hover:bg-white hover:text-red-500 w-6 h-6 flex items-center justify-center font-bold transition-all">-</button>
+                  <button @click="HapticUtils.lightTick(); store.adjustFoodMultiplier(f.id!, -1)" class="text-slate-400 hover:bg-white hover:text-red-500 w-6 h-6 flex items-center justify-center font-bold transition-all">-</button>
                   <span class="text-[13px] font-bold text-slate-700 dark:text-slate-200 w-5 text-center">{{ f.multiplier || 1 }}</span>
-                  <button @click="HapticUtils.lightTick(); f.multiplier = (f.multiplier || 1) + 1" class="text-slate-400 hover:bg-white hover:text-emerald-500 w-6 h-6 flex items-center justify-center font-bold transition-all">+</button>
+                  <button @click="HapticUtils.lightTick(); store.adjustFoodMultiplier(f.id!, 1)" class="text-slate-400 hover:bg-white hover:text-emerald-500 w-6 h-6 flex items-center justify-center font-bold transition-all">+</button>
                 </div>
 
                 <div class="flex items-center justify-end min-w-[50px] shrink-0">

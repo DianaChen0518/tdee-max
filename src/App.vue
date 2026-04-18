@@ -12,6 +12,7 @@ import BaseStatsModule from './components/features/tdee/BaseStatsModule.vue';
 import WorkoutModule from './components/features/workout/WorkoutModule.vue';
 import DietModule from './components/features/diet/DietModule.vue';
 import AppNotification from './components/layout/AppNotification.vue';
+import AppDialog from './components/AppDialog.vue';
 
 // Existing Modals
 import SettingsModal from './components/SettingsModal.vue';
@@ -39,22 +40,22 @@ watch(() => store.isConfigured, (configured) => {
 });
 
 // Event Handlers
-const handleSave = async () => {
-  // 1. Local Save (Immediate feedback via the new notification system)
-  notify.success(t('notifications.saveSuccess', { date: store.selectedDate }));
-  
-  // 2. Cloud Sync (Conditional & Async)
-  if (store.isCloudSyncEnabled) {
-    const syncId = notify.syncing(t('notifications.syncing'));
-    
-    const result = await store.syncToCloud();
-    
-    notify.remove(syncId);
-    if (result.success) {
-      notify.success(t('notifications.syncSuccess'));
-    } else {
-      notify.error(t('notifications.syncError', { message: result.message }));
-    }
+// Cloud Sync Handler (data auto-saves via useStorage; this button is for cloud backup only)
+const handleSync = async () => {
+  if (!store.isCloudSyncEnabled) {
+    notify.error(t('notifications.syncNotConfigured'));
+    return;
+  }
+
+  const syncId = notify.syncing(t('notifications.syncing'));
+
+  const result = await store.syncToCloud();
+
+  notify.remove(syncId);
+  if (result.success) {
+    notify.success(t('notifications.syncSuccess'));
+  } else {
+    notify.error(t('notifications.syncError', { message: result.message }));
   }
 };
 
@@ -68,6 +69,7 @@ const handleExport = () => {
     
     <!-- Centralized Notification System -->
     <AppNotification />
+    <AppDialog />
 
     <div class="w-full max-w-[1400px]">
       
@@ -90,8 +92,7 @@ const handleExport = () => {
 
         <!-- Right Column: Dashboard & Actions -->
         <DailyDashboard 
-          @save="handleSave" 
-          @reset="notify.info(t('notifications.resetSuccess'))" 
+          @sync="handleSync" 
           @export="handleExport" 
         />
 
@@ -108,16 +109,3 @@ const handleExport = () => {
   </div>
 </template>
 
-<style>
-/* Custom scrollbar for better professional feel */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(156, 163, 175, 0.3);
-  border-radius: 10px;
-}
-.dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(75, 85, 99, 0.5);
-}
-</style>

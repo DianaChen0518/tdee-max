@@ -1,12 +1,14 @@
 import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
 import { useStorage } from '@vueuse/core';
-import { UserProfile, Database, DayData, Food, RecipeCombo, DailySummaryMetrics } from '../types';
+import { UserProfile, Database, DayData, Food, RecipeCombo, DailySummaryMetrics, MealType } from '../types';
 import { CalculatorService } from '../services/CalculatorService';
 import { DayManager } from '../utils/day-manager';
 import { DateUtils } from '../utils/DateUtils';
 import { Logger } from '../utils/Logger';
 import { GistService, GistSyncResult } from '../services/GistService';
+import { TokenVault } from '../utils/TokenVault';
+import { generateId } from '../utils/IdUtils';
 import i18n from '../i18n';
 
 /**
@@ -27,15 +29,35 @@ export const useTdeeStore = defineStore('tdee', () => {
   const database = useStorage<Database>('tdee_db_v2', {});
   
   const commonFoods = useStorage<Food[]>('tdee_foods_v2', [
-    { name: t('defaults.foods.chicken'), cals: 133 },
-    { name: t('defaults.foods.rice'), cals: 116 },
-    { name: t('defaults.foods.egg'), cals: 75 },
-    { name: t('defaults.foods.coffee'), cals: 5 }
+    { id: generateId(), name: t('defaults.foods.chicken'), cals: 133 },
+    { id: generateId(), name: t('defaults.foods.rice'), cals: 116 },
+    { id: generateId(), name: t('defaults.foods.egg'), cals: 75 },
+    { id: generateId(), name: t('defaults.foods.coffee'), cals: 5 }
   ]);
 
   const recipeCombos = useStorage<RecipeCombo[]>('tdee_recipe_combos', []);
-  const githubToken = useStorage<string>('tdee_github_token', '');
+
+  // --- Secure Token Storage (P0 Fix: obfuscated instead of plaintext localStorage) ---
+  const githubToken = ref(TokenVault.migrateLegacy() || TokenVault.retrieve());
+  watch(githubToken, (newVal) => {
+    TokenVault.store(newVal);
+  });
+
   const gistId = useStorage<string>('tdee_gist_id', '');
+
+  // --- Data Migration: ensure all list items have unique IDs for stable rendering ---
+  const migrateDataIds = () => {
+    for (const dateStr of Object.keys(database.value)) {
+      const day = database.value[dateStr];
+      day.foods.forEach(f => { if (!f.id) f.id = generateId(); });
+      day.workouts.forEach(w => { if (!w.id) w.id = generateId(); });
+    }
+    commonFoods.value.forEach(f => { if (!f.id) f.id = generateId(); });
+    recipeCombos.value.forEach(rc => {
+      rc.foods.forEach(f => { if (!f.id) f.id = generateId(); });
+    });
+  };
+  migrateDataIds();
 
   // --- Reactive UI State ---
   const selectedDate = ref(DateUtils.getLocalYYYYMMDD());
@@ -68,7 +90,7 @@ export const useTdeeStore = defineStore('tdee', () => {
   const totalConsumed = computed(() => summary.value.intake);
   const dailyDeficit = computed(() => summary.value.deficit);
 
-  // --- Actions ---
+  // --- Core Day Actions ---
 
   const initDayIfNotExists = (dateStr: string) => {
     if (!database.value[dateStr]) {
@@ -114,6 +136,80 @@ export const useTdeeStore = defineStore('tdee', () => {
     Logger.info(`Copied ${mealType} to tomorrow`, { tomorrowStr });
   };
 
+  // --- Food Actions (P0 Fix: centralized mutations with ID generation) ---
+
+  const addFoodToDay = (name: string, cals: number, mealType: MealType) => {
+    const existing = activeDay.value.foods.find(f => 
+      f.name === name && (f.mealType || 'uncategorized') === mealType
+    );
+    if (existing) {
+      existing.multiplier = (existing.multiplier || 1) + 1;
+    } else {
+      activeDay.value.foods.push({ id: generateId(), name, cals, multiplier: 1, mealType });
+    }
+  };
+
+  const removeFoodFromDay = (foodId: string) => {
+    const idx = activeDay.value.foods.findIndex(f => f.id === foodId);
+    if (idx > -1) activeDay.value.foods.splice(idx, 1);
+  };
+
+  const adjustFoodMultiplier = (foodId: string, delta: number) => {
+    const food = activeDay.value.foods.find(f => f.id === foodId);
+    if (!food) return;
+    const newVal = (food.multiplier || 1) + delta;
+    if (newVal <= 0) {
+      removeFoodFromDay(foodId);
+    } else {
+      food.multiplier = newVal;
+    }
+  };
+
+  const applyComboToDay = (combo: RecipeCombo, mealType: MealType) => {
+    combo.foods.forEach((cf: Food) => {
+      const existing = activeDay.value.foods.find((f: Food) => 
+        f.name === cf.name && (f.mealType || 'uncategorized') === mealType
+      );
+      if (existing) {
+        existing.multiplier = (existing.multiplier || 1) + (cf.multiplier || 1);
+      } else {
+        activeDay.value.foods.push({ ...cf, id: generateId(), mealType });
+      }
+    });
+  };
+
+  const addCommonFood = (food: Food) => {
+    commonFoods.value.push({ ...food, id: generateId() });
+  };
+
+  const removeCommonFood = (index: number) => {
+    commonFoods.value.splice(index, 1);
+  };
+
+  const addRecipeCombo = (combo: RecipeCombo) => {
+    recipeCombos.value.push(combo);
+  };
+
+  const removeRecipeCombo = (index: number) => {
+    recipeCombos.value.splice(index, 1);
+  };
+
+  // --- Workout Actions (P0 Fix: centralized with ID generation) ---
+
+  const addWorkout = () => {
+    activeDay.value.workouts.push({
+      id: generateId(),
+      type: 'aerobic', hr: 0, mins: 0, secs: 0, intensity: 'med', kcal: 0
+    });
+  };
+
+  const removeWorkout = (workoutId: string) => {
+    const idx = activeDay.value.workouts.findIndex(w => w.id === workoutId);
+    if (idx > -1) activeDay.value.workouts.splice(idx, 1);
+  };
+
+  // --- Cloud Sync ---
+
   const syncToCloud = async (): Promise<GistSyncResult> => {
     if (!isCloudSyncEnabled.value) {
       return { success: false, message: 'Cloud sync not configured' };
@@ -129,7 +225,7 @@ export const useTdeeStore = defineStore('tdee', () => {
     const result = await GistService.pushToCloud(githubToken.value, gistId.value, payload);
     
     if (result.success && result.data?.id && !gistId.value) {
-      gistId.value = result.data.id;
+      gistId.value = result.data.id as string;
     }
 
     return result;
@@ -139,6 +235,9 @@ export const useTdeeStore = defineStore('tdee', () => {
     userProfile, githubToken, gistId, database, commonFoods, recipeCombos, selectedDate, activeDay,
     isConfigured, isCloudSyncEnabled,
     age, bmr, tefCalories, stepCalories, workoutCalories, epocCalories, tdee, totalConsumed, dailyDeficit, summary,
-    changeDate, goToToday, clearDayData, copyYesterdayDiet, copyMealToTomorrow, syncToCloud
+    changeDate, goToToday, clearDayData, copyYesterdayDiet, copyMealToTomorrow, syncToCloud,
+    addFoodToDay, removeFoodFromDay, adjustFoodMultiplier, applyComboToDay,
+    addCommonFood, removeCommonFood, addRecipeCombo, removeRecipeCombo,
+    addWorkout, removeWorkout
   };
 });

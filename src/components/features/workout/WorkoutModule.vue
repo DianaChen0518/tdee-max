@@ -8,9 +8,7 @@ const { t } = useI18n();
 
 const addWorkoutRecord = () => {
   HapticUtils.lightTick();
-  store.activeDay.workouts.push({
-    type: 'aerobic', hr: 0, mins: 0, secs: 0, intensity: 'med', kcal: 0
-  });
+  store.addWorkout();
 };
 </script>
 
@@ -25,8 +23,8 @@ const addWorkoutRecord = () => {
     
     <div class="overflow-y-auto custom-scrollbar flex-1 pr-1">
       <transition-group name="list" tag="div">
-        <div v-for="(wo, i) in store.activeDay.workouts" :key="i" class="bg-gray-50 dark:bg-[#252525] p-4 rounded-inner border border-gray-200 dark:border-[#333] mb-3 relative transition-all duration-300 w-full overflow-hidden">
-          <button @click="HapticUtils.lightTick(); store.activeDay.workouts.splice(i,1)" class="absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors z-10 p-1">✕</button>
+        <div v-for="wo in store.activeDay.workouts" :key="wo.id" class="bg-gray-50 dark:bg-[#252525] p-4 rounded-inner border border-gray-200 dark:border-[#333] mb-3 relative transition-all duration-300 w-full overflow-hidden">
+          <button @click="HapticUtils.lightTick(); store.removeWorkout(wo.id!)" class="absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors z-10 p-1">✕</button>
         
           <div class="flex flex-col gap-3">
             <!-- Type Selector -->

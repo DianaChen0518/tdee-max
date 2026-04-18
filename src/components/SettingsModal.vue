@@ -2,12 +2,16 @@
 import { computed, ref } from 'vue';
 import { useTdeeStore } from '../store/useTdeeStore';
 import { GistService } from '../services/GistService';
+import { DataValidator } from '../utils/DataValidator';
+import { Database, Food, RecipeCombo } from '../types';
 import { useI18n } from 'vue-i18n';
 import { HapticUtils } from '../utils/HapticUtils';
+import { useDialog } from '../composables/useDialog';
 
 const store = useTdeeStore();
 const { t, locale } = useI18n();
 const emit = defineEmits(['close']);
+const dialog = useDialog();
 
 const currentLang = computed({
   get: () => locale.value,
@@ -48,8 +52,9 @@ const backupData = async () => {
         } else {
             syncError.value = result.message;
         }
-    } catch (e: any) {
-        syncError.value = t('settings.messages.syncError', { message: e.message });
+    } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        syncError.value = t('settings.messages.syncError', { message: msg });
     } finally {
         syncInProgress.value = false;
     }
@@ -61,7 +66,13 @@ const restoreData = async () => {
         syncError.value = t('settings.messages.tokenGistRequired');
         return;
     }
-    if(!confirm(t('settings.messages.restoreConfirm'))) return;
+    const confirmed = await dialog.confirm({
+      title: '⚠️ ' + t('settings.actions.restore'),
+      message: t('settings.messages.restoreConfirm'),
+      confirmText: t('settings.actions.restore'),
+      danger: true
+    });
+    if (!confirmed) return;
     
     syncInProgress.value = true;
     syncError.value = '';
@@ -71,16 +82,25 @@ const restoreData = async () => {
         const result = await GistService.pullFromCloud(store.githubToken, store.gistId);
         if (result.success && result.data) {
             const parsed = result.data;
+
+            // P1 Fix: validate cloud data before writing to store
+            const validation = DataValidator.validateCloudData(parsed);
+            if (!validation.valid) {
+              syncError.value = t('notifications.cloudDataInvalid', { errors: validation.errors.join('; ') });
+              return;
+            }
+
             if (parsed.userProfile) Object.assign(store.userProfile, parsed.userProfile);
-            if (parsed.database) store.database = parsed.database;
-            if (parsed.commonFoods) store.commonFoods = parsed.commonFoods;
-            if (parsed.recipeCombos) store.recipeCombos = parsed.recipeCombos;
+            if (parsed.database) store.database = parsed.database as Database;
+            if (parsed.commonFoods) store.commonFoods = parsed.commonFoods as Food[];
+            if (parsed.recipeCombos) store.recipeCombos = parsed.recipeCombos as RecipeCombo[];
             syncSuccess.value = t('settings.messages.restoreSuccess');
         } else {
             syncError.value = result.message;
         }
-    } catch (e: any) {
-        syncError.value = t('settings.messages.restoreError', { message: e.message });
+    } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        syncError.value = t('settings.messages.restoreError', { message: msg });
     } finally {
         syncInProgress.value = false;
     }
@@ -137,6 +157,9 @@ const restoreData = async () => {
           <div>
             <label class="block text-[11px] font-bold text-gray-400 dark:text-gray-500 mb-1 uppercase tracking-wider">{{ t('settings.labels.token') }}</label>
             <input type="password" v-model="store.githubToken" placeholder="ghp_xxx..." class="w-full bg-gray-50 dark:bg-[#2c2c2c] border border-gray-200 dark:border-[#444] rounded-inner p-2 text-xs text-gray-800 dark:text-white outline-none focus:border-blue-500 transition-all">
+            <p class="text-[10px] text-amber-600 dark:text-amber-400 mt-1.5 leading-relaxed">
+              {{ t('settings.tokenWarning') }}
+            </p>
           </div>
           <div>
             <label class="block text-[11px] font-bold text-gray-400 dark:text-gray-500 mb-1 uppercase tracking-wider">{{ t('settings.labels.gistId') }}</label>

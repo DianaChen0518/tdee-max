@@ -11,6 +11,7 @@ export default {
   dashboard: {
     title: '当日大盘',
     save: '保存当日',
+    sync: '同步到云端',
     reset: '清空重置',
     export: '导出全部历史记录为 Excel',
     intake: '摄入',
@@ -67,12 +68,14 @@ export default {
     syncing: '正在同步到云端 Gist...',
     syncSuccess: '云端备份同步成功！',
     syncError: '云端同步失败: {msg}',
+    syncNotConfigured: '云端同步未配置，请先在设置中填写 GitHub Token。',
     quickFoodSaved: '已存入快捷库',
     comboSaved: '套餐【{name}】已保存',
     comboLoaded: '已加载套餐【{name}】',
     copyTomorrowSuccess: '{name} 已成功投递至明日',
     resetSuccess: '已重置当日数据',
-    comboEmptyError: '本餐没有食物可以保存！'
+    comboEmptyError: '本餐没有食物可以保存！',
+    cloudDataInvalid: '云端数据校验失败: {errors}'
   },
   workout: {
     title: '运动记录',
@@ -114,6 +117,7 @@ export default {
       en: 'English'
     },
     rhrTip: '💡 基于 Tanaka 公式精确推导储备心率 (HRR)。后燃效应 (EPOC) 采用三段线性强度模型 + 时长修正因子 (0.7x - 1.1x) 计算，确保短时运动有补偿，长时运动有增益。',
+    tokenWarning: '🔒 安全提示：请创建仅有 gist 权限的 fine-grained PAT，切勿使用权限过大的 Token。',
     genders: {
       M: '男性',
       F: '女性'
@@ -180,5 +184,9 @@ export default {
       egg: '水煮蛋 (1个)',
       coffee: '黑咖啡'
     }
+  },
+  dialog: {
+    confirm: '确认',
+    cancel: '取消'
   }
 };

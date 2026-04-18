@@ -27,7 +27,13 @@ input[type=number]::-webkit-outer-spin-button {
 }
 .custom-scrollbar::-webkit-scrollbar { width: 6px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { @apply bg-gray-300 dark:bg-[#444] rounded; }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.3);
+  border-radius: 10px;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(75, 85, 99, 0.5);
+}
 
 @layer components {
   /* Unified Header Button Style */
@@ -59,16 +65,16 @@ input[type=number]::-webkit-outer-spin-button {
   }
 }
 
-/* Global Theme Transition - Ensures everything morphs smoothly during mode switch */
-* {
-  transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
-              border-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
-              color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-              fill 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-              stroke 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+/* Global Theme Transition — scoped to visible element types (P2: replaces * for performance) */
+body, div, main, section, nav, header, footer,
+button, input, select, textarea,
+h1, h2, h3, h4, h5, h6, p, span, a, label {
+  transition: background-color 0.4s ease,
+              border-color 0.4s ease,
+              color 0.3s ease;
 }
 
-/* Allow faster interaction transitions to override the global one */
+/* Allow faster interaction transitions to override the theme transition */
 .transition-all, .transition-colors, .active\:scale-95:active {
   transition-duration: 0.2s !important;
 }
