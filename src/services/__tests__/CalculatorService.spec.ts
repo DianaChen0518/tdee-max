@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { CalculatorService } from '../CalculatorService';
-import { UserProfile, DayData } from '../../types';
+import { UserProfile, DayData, Workout } from '../../types';
 
 describe('CalculatorService', () => {
   const mockProfile: UserProfile = {
@@ -86,9 +86,9 @@ describe('CalculatorService', () => {
       const rhr = 70;
       const bmr = 1728;
 
-      const workouts = [
+      const workouts: Workout[] = [
         {
-          type: 'aerobic' as any,
+          type: 'aerobic',
           hr: 150,
           mins: 30,
           secs: 0
@@ -104,10 +104,10 @@ describe('CalculatorService', () => {
 
     it('should calculate resistance training using MET model', () => {
       const weight = 80;
-      const workouts = [
+      const workouts: Workout[] = [
         {
-          type: 'anaerobic' as any,
-          intensity: 'high' as any,
+          type: 'anaerobic',
+          intensity: 'high',
           mins: 60,
           secs: 0
         }
