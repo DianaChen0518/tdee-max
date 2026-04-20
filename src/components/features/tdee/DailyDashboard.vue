@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { HapticUtils } from '../../../utils/HapticUtils';
 import { useNotification } from '../../../composables/useNotification';
 import { useDialog } from '../../../composables/useDialog';
+import { KCAL_PER_GRAM_FAT } from '../../../constants/metabolic';
 
 const dailyStore = useDailyStore();
 const { t } = useI18n();
@@ -135,7 +136,7 @@ const handleDelete = async () => {
           {{
             t('dashboard.equivalentTo', {
               action: dailyStore.dailyDeficit > 0 ? t('dashboard.actionConsuming') : t('dashboard.actionStoring'),
-              val: (Math.abs(dailyStore.dailyDeficit) / 7.7).toFixed(1)
+              val: (Math.abs(dailyStore.dailyDeficit) / KCAL_PER_GRAM_FAT).toFixed(1)
             })
           }}
         </div>

@@ -1,18 +1,21 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useStorage } from '@vueuse/core';
 import { GistService, GistSyncResult } from '../services/GistService';
 import { TokenVault } from '../utils/TokenVault';
-import { Database } from '../types';
+import { Database, UserProfile, Food, RecipeCombo } from '../types';
 
 export const useCloudStore = defineStore('cloud', () => {
   const githubToken = ref(TokenVault.migrateLegacy() || TokenVault.retrieve());
 
-  // Watcher handled via computed setter or we can just provide an update action
   const setGithubToken = (val: string) => {
     githubToken.value = val;
     TokenVault.store(val);
   };
+
+  watch(githubToken, (newVal: string) => {
+    TokenVault.store(newVal);
+  });
 
   const gistId = useStorage<string>('tdee_gist_id', '');
 
@@ -25,9 +28,9 @@ export const useCloudStore = defineStore('cloud', () => {
   // A cleaner approach is to have arguments injected or depend directly.
   const syncToCloud = async (
     database: Database,
-    userProfile: any,
-    commonFoods: any,
-    recipeCombos: any
+    userProfile: UserProfile,
+    commonFoods: Food[],
+    recipeCombos: RecipeCombo[]
   ): Promise<GistSyncResult> => {
     if (!isCloudSyncEnabled.value) {
       return { success: false, message: 'Cloud sync not configured' };

@@ -223,7 +223,7 @@ export class CalculatorService {
 
   private static calculateEPOC(hr: number, rhr: number, age: number, netWorkoutKcal: number, duration: number): number {
     const maxHR = MAX_HR_TANAKA.INTERCEPT - MAX_HR_TANAKA.AGE_MULT * age;
-    const safeHR = ValidationGuard.clampHeartRate(hr, rhr, MAX_HR_TANAKA.SAFETY_OFFSET);
+    const safeHR = ValidationGuard.clampHeartRate(hr, rhr, MAX_HR_TANAKA.SAFETY_OFFSET, age);
 
     const hrr = Math.max(0, maxHR - rhr);
     const pctHRR = hrr > 0 ? Math.max(0, Math.min(1.5, (safeHR - rhr) / hrr)) : 0;

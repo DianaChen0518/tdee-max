@@ -31,9 +31,9 @@ export class ValidationGuard {
   /**
    * Clamps heart rate to biological physiological limits + safety buffer.
    */
-  static clampHeartRate(hr: number, rhr: number, maxHROffset: number): number {
+  static clampHeartRate(hr: number, rhr: number, safetyOffset: number, age: number): number {
     const minHR = Math.max(30, rhr);
-    const maxHR = 220 + maxHROffset; // Absolute biological limit for safety
+    const maxHR = 208 - 0.7 * age + safetyOffset; // Biological limit for safety based on Tanaka
     return Math.max(minHR, Math.min(maxHR, hr));
   }
 }

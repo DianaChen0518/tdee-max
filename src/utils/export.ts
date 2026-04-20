@@ -1,10 +1,9 @@
-import * as XLSX from 'xlsx';
 import { ReportingService } from '../services/ReportingService';
 import { DateUtils } from './DateUtils';
 import { Database, UserProfile } from '../types';
 import i18n from '../i18n';
 
-export const exportTdeeData = (database: Database, userProfile: UserProfile) => {
+export const exportTdeeData = async (database: Database, userProfile: UserProfile) => {
   const records = ReportingService.getProcessingRecords(database, userProfile);
   const { t } = i18n.global;
 
@@ -16,6 +15,7 @@ export const exportTdeeData = (database: Database, userProfile: UserProfile) => 
     [t('export.columns.deficit')]: Math.round(r.deficit)
   }));
 
+  const XLSX = await import('xlsx');
   const ws = XLSX.utils.json_to_sheet(exportData);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, t('export.sheetName'));
