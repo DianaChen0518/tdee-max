@@ -73,7 +73,7 @@ export const useDailyStore = defineStore('daily', () => {
     database.value[selectedDate.value] = { weight: 0, steps: 0, workouts: [], foods: [] };
   };
 
-  const copyYesterdayDiet = () => {
+  const copyPreviousDiet = () => {
     const lastFoods = DayManager.findLastDietDayFoods(database.value, selectedDate.value);
     if (lastFoods.length > 0) {
       database.value[selectedDate.value].foods = lastFoods;
@@ -81,16 +81,16 @@ export const useDailyStore = defineStore('daily', () => {
     }
   };
 
-  const copyMealToTomorrow = (mealType: string) => {
-    const tomorrowStr = DateUtils.offsetDate(selectedDate.value, 1);
-    initDayIfNotExists(tomorrowStr);
+  const copyMealToToday = (mealType: string) => {
+    const todayStr = DateUtils.getLocalYYYYMMDD();
+    initDayIfNotExists(todayStr);
 
-    database.value[tomorrowStr].foods = DayManager.copyFoods(
+    database.value[todayStr].foods = DayManager.copyFoods(
       activeDay.value.foods,
-      database.value[tomorrowStr].foods,
+      database.value[todayStr].foods,
       mealType
     );
-    Logger.info(`Copied ${mealType} to tomorrow`, { tomorrowStr });
+    Logger.info(`Copied ${mealType} to today`, { todayStr });
   };
 
   const addFoodToDay = (name: string, cals: number, mealType: MealType) => {
@@ -165,8 +165,8 @@ export const useDailyStore = defineStore('daily', () => {
     changeDate,
     goToToday,
     clearDayData,
-    copyYesterdayDiet,
-    copyMealToTomorrow,
+    copyPreviousDiet,
+    copyMealToToday,
     addFoodToDay,
     removeFoodFromDay,
     adjustFoodMultiplier,

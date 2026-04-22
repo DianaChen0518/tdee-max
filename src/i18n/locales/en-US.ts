@@ -50,9 +50,9 @@ export default {
     saveQuick: 'Save Quick',
     comboTitle: 'Quick Meals Library',
     saveCombo: 'Save as Combo',
-    copyTomorrow: 'Copy to Tomorrow',
+    copyToday: 'Copy to Today',
     empty: 'No entries for today',
-    copyYesterday: 'Copy from Yesterday',
+    copyPrevious: 'Copy from Previous Record',
     comboPrompt: 'Enter combo name (will save {count} items):',
     comboDefaultName: '{meal} common selection',
     mealLabels: {
@@ -72,7 +72,7 @@ export default {
     quickFoodSaved: 'Saved to Quick Library',
     comboSaved: 'Combo [{name}] saved',
     comboLoaded: 'Combo [{name}] loaded',
-    copyTomorrowSuccess: '{name} successfully sent to tomorrow',
+    copyTodaySuccess: '{name} successfully sent to today',
     resetSuccess: 'Daily data reset',
     comboEmptyError: 'No items in this meal to save!',
     cloudDataInvalid: 'Cloud data validation failed: {errors}'

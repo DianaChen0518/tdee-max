@@ -50,9 +50,9 @@ export default {
     saveQuick: '存快捷',
     comboTitle: '我的极速套餐库',
     saveCombo: '存为套餐',
-    copyTomorrow: '复制至明日',
+    copyToday: '复制至今日',
     empty: '当日未记录饮食',
-    copyYesterday: '一键复制昨日全天',
+    copyPrevious: '一键复制最近全天记录',
     comboPrompt: '请输入组合名称 (将保存 {count} 种食物):',
     comboDefaultName: '{meal} 常用组合',
     mealLabels: {
@@ -72,7 +72,7 @@ export default {
     quickFoodSaved: '已存入快捷库',
     comboSaved: '套餐【{name}】已保存',
     comboLoaded: '已加载套餐【{name}】',
-    copyTomorrowSuccess: '{name} 已成功投递至明日',
+    copyTodaySuccess: '{name} 已成功投递至今日',
     resetSuccess: '已重置当日数据',
     comboEmptyError: '本餐没有食物可以保存！',
     cloudDataInvalid: '云端数据校验失败: {errors}'

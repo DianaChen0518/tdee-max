@@ -8,12 +8,14 @@ import { useDialog } from '../../../composables/useDialog';
 import { useI18n } from 'vue-i18n';
 import { HapticUtils } from '../../../utils/HapticUtils';
 import { KJ_TO_KCAL_FACTOR } from '../../../constants/metabolic';
+import { DateUtils } from '../../../utils/DateUtils';
 
 const dailyStore = useDailyStore();
 const dietStore = useDietStore();
 const notify = useNotification();
 const dialog = useDialog();
 const { t } = useI18n();
+const isToday = computed(() => dailyStore.selectedDate === DateUtils.getLocalYYYYMMDD());
 
 const getAutoMealType = (): MealType => {
   const hr = new Date().getHours();
@@ -92,8 +94,8 @@ const applyCombo = (combo: RecipeCombo) => {
 };
 
 const handleCopyMeal = (mealType: string) => {
-  dailyStore.copyMealToTomorrow(mealType);
-  notify.success(t('notifications.copyTomorrowSuccess', { name: mealTypeLabels.value[mealType as MealType] }));
+  dailyStore.copyMealToToday(mealType);
+  notify.success(t('notifications.copyTodaySuccess', { name: mealTypeLabels.value[mealType as MealType] }));
 };
 
 const groupedFoods = computed(() => {
@@ -245,10 +247,11 @@ const groupedFoods = computed(() => {
                   💾 {{ t('diet.saveCombo') }}
                 </button>
                 <button
+                  v-if="!isToday"
                   @click="handleCopyMeal(kind)"
                   class="text-[10px] bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 px-2 py-1 rounded-btn transition-colors font-bold"
                 >
-                  🚀 {{ t('diet.copyTomorrow') }}
+                  🚀 {{ t('diet.copyToday') }}
                 </button>
               </div>
             </div>
@@ -306,10 +309,10 @@ const groupedFoods = computed(() => {
         <div v-if="dailyStore.activeDay.foods.length === 0" class="flex flex-col items-center justify-center py-6">
           <div class="text-gray-400 dark:text-gray-500 text-sm mb-3 font-medium">{{ t('diet.empty') }}</div>
           <button
-            @click="dailyStore.copyYesterdayDiet"
+            @click="dailyStore.copyPreviousDiet"
             class="text-xs bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50 px-4 py-2 rounded-btn transition-colors font-bold"
           >
-            🔄 {{ t('diet.copyYesterday') }}
+            🔄 {{ t('diet.copyPrevious') }}
           </button>
         </div>
       </div>
