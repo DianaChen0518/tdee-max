@@ -25,7 +25,7 @@ export class DateUtils {
    */
   static offsetDate(dateStr: string, days: number): string {
     const d = new Date(dateStr);
-    d.setDate(d.getDate() + days);
-    return this.getLocalYYYYMMDD(d);
+    d.setUTCDate(d.getUTCDate() + days);
+    return d.toISOString().split('T')[0];
   }
 }

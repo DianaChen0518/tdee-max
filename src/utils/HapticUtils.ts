@@ -25,7 +25,7 @@ export class HapticUtils {
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
       try {
         navigator.vibrate(pattern);
-      } catch (e) {
+      } catch {
         // Silently fail if blocked by browser policy or hardware missing
       }
     }
