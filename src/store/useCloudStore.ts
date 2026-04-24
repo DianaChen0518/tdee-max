@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, toRaw } from 'vue';
 import { useStorage } from '@vueuse/core';
 import { GistService, GistSyncResult } from '../services/GistService';
 import { TokenVault } from '../utils/TokenVault';
@@ -23,9 +23,10 @@ export const useCloudStore = defineStore('cloud', () => {
     return !!(githubToken.value && githubToken.value.trim().length > 0);
   });
 
-  // Requires Database dependency from caller or import it.
-  // Actually, since useCloudStore syncs all states, we need to gather them.
-  // A cleaner approach is to have arguments injected or depend directly.
+  /**
+   * Synchronizes local state to GitHub Gist.
+   * Uses toRaw to ensure data is stripped of Vue proxies before serialization.
+   */
   const syncToCloud = async (
     database: Database,
     userProfile: UserProfile,
@@ -36,11 +37,12 @@ export const useCloudStore = defineStore('cloud', () => {
       return { success: false, message: 'Cloud sync not configured' };
     }
 
+    // De-proxy objects to prevent serialization issues with nested reactive proxies
     const payload = {
-      userProfile,
-      database,
-      commonFoods,
-      recipeCombos
+      userProfile: toRaw(userProfile),
+      database: toRaw(database),
+      commonFoods: toRaw(commonFoods),
+      recipeCombos: toRaw(recipeCombos)
     };
 
     const result = await GistService.pushToCloud(githubToken.value, gistId.value, payload);
