@@ -8,7 +8,9 @@ export const useProfileStore = defineStore('profile', () => {
     birthDate: '',
     heightCm: 0,
     gender: 'M',
-    rhr: 70
+    rhr: 70,
+    enableStepGoal: false,
+    stepGoal: 6000
   });
 
   const isConfigured = computed(() => {

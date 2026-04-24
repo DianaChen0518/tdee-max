@@ -10,6 +10,10 @@ export interface UserProfile {
   gender: 'M' | 'F';
   /** Resting Heart Rate in bpm */
   rhr: number;
+  /** Whether daily step goal is enabled */
+  enableStepGoal?: boolean;
+  /** Daily step goal target */
+  stepGoal?: number;
 }
 
 /**

@@ -200,6 +200,30 @@ const restoreData = async () => {
             <option value="en-US">{{ t('settings.languages.en') }}</option>
           </select>
         </div>
+
+        <!-- Step Goal Settings -->
+        <div class="pt-2 border-t border-gray-100 dark:border-[#333]">
+          <label class="flex items-center gap-2 cursor-pointer mb-2">
+            <input
+              type="checkbox"
+              v-model="profileStore.userProfile.enableStepGoal"
+              class="w-4 h-4 text-green-600 rounded focus:ring-green-500 bg-gray-50 border-gray-300 dark:bg-[#2c2c2c] dark:border-[#444]"
+            />
+            <span class="text-xs font-bold text-gray-700 dark:text-gray-300">{{
+              t('settings.labels.stepGoalEnable')
+            }}</span>
+          </label>
+          <div v-if="profileStore.userProfile.enableStepGoal">
+            <label class="block text-[10px] font-bold text-gray-500 dark:text-gray-400 mb-1">{{
+              t('settings.labels.stepGoal')
+            }}</label>
+            <input
+              type="number"
+              v-model.number="profileStore.userProfile.stepGoal"
+              class="w-full bg-gray-50 dark:bg-[#2c2c2c] border border-gray-200 dark:border-[#444] rounded-inner p-2.5 text-gray-800 dark:text-white outline-none focus:border-green-500 transition-all font-bold"
+            />
+          </div>
+        </div>
       </div>
 
       <div class="mt-6 border-t border-gray-100 dark:border-[#333] pt-4">

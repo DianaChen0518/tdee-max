@@ -109,6 +109,8 @@ export default {
       rhr: 'Resting Heart Rate (RHR)',
       gender: 'Biological Gender (for Mifflin-St Jeor)',
       language: 'Interface Language',
+      stepGoalEnable: 'Enable Daily Step Goal',
+      stepGoal: 'Daily Step Goal',
       token: 'GitHub PAT (Token)',
       gistId: 'Backup Gist ID (leave blank to create new)'
     },

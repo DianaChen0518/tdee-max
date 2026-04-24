@@ -88,7 +88,7 @@ const handleExport = () => {
       <!-- Layout Header -->
       <AppHeader @open-settings="showSettings = true" @open-datavis="showDataVis = true" />
 
-      <main class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 items-start relative">
+      <main class="grid grid-cols-1 lg:grid-cols-[1fr_1.8fr_1fr] gap-4 lg:gap-6 items-start relative">
         <!-- Left Column: Base Stats & Workouts -->
         <div
           class="flex flex-col gap-4 lg:sticky lg:top-6 transition-colors max-h-[100vh] lg:max-h-[calc(100vh-40px)] overflow-y-auto custom-scrollbar pr-1 pb-4"

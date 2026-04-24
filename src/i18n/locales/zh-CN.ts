@@ -9,7 +9,7 @@ export default {
     backToToday: '回今日'
   },
   dashboard: {
-    title: '当日大盘',
+    title: '今日概览',
     save: '保存当日',
     sync: '同步到云端',
     reset: '清空重置',
@@ -109,6 +109,8 @@ export default {
       rhr: '静息心率 (RHR)',
       gender: '生理性别 (Mifflin-St Jeor 公式基数)',
       language: '界面语言 (Language)',
+      stepGoalEnable: '启用每日步数目标',
+      stepGoal: '每日步数目标',
       token: 'GitHub PAT (Token)',
       gistId: '备份库 ID (Gist ID) - 首次备份留空自动生成'
     },
