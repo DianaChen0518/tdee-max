@@ -2,7 +2,7 @@ export default {
   header: {
     title: 'TDEE Max',
     audit: 'Reports',
-    datavis: 'Dynamic Analytics',
+    datavis: 'Historical Data',
     settings: 'Settings',
     dark: 'Dark',
     light: 'Light',
@@ -149,7 +149,7 @@ export default {
     }
   },
   datavis: {
-    title: 'Data Visual Analytics',
+    title: 'Historical Data',
     close: 'Close Panel',
     empty: 'No records found',
     ranges: {

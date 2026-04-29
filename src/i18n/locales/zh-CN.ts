@@ -2,7 +2,7 @@ export default {
   header: {
     title: 'TDEE Max',
     audit: '报表中心',
-    datavis: '动态观测',
+    datavis: '历史数据',
     settings: '设置',
     dark: '黑夜',
     light: '白天',
@@ -148,7 +148,7 @@ export default {
     }
   },
   datavis: {
-    title: '动态数据观测站',
+    title: '历史数据',
     close: '关闭 面板',
     empty: '暂无数据记录',
     ranges: {
