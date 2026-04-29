@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import { useDailyStore } from '../../../store/useDailyStore';
+import { useProfileStore } from '../../../store/useProfileStore';
 import { useI18n } from 'vue-i18n';
 import { HapticUtils } from '../../../utils/HapticUtils';
 import { useNotification } from '../../../composables/useNotification';
 import { useDialog } from '../../../composables/useDialog';
 import { KCAL_PER_GRAM_FAT } from '../../../constants/metabolic';
+import { useClipboard } from '@vueuse/core';
 
 const dailyStore = useDailyStore();
-const { t } = useI18n();
+const profileStore = useProfileStore();
+const { t, locale } = useI18n();
 const notify = useNotification();
 const dialog = useDialog();
+const { copy, isSupported } = useClipboard();
 
 const emit = defineEmits(['sync', 'export']);
 
@@ -24,6 +28,75 @@ const handleDelete = async () => {
     HapticUtils.lightTick();
     dailyStore.clearDayData();
     notify.success(t('notifications.resetSuccess'));
+  }
+};
+
+const generateSummaryText = () => {
+  const p = profileStore.userProfile;
+  const d = dailyStore.activeDay;
+  const gender =
+    p.gender === 'M' ? (locale.value === 'en-US' ? 'Male' : '男性') : locale.value === 'en-US' ? 'Female' : '女性';
+
+  let text = `📅 日期：${dailyStore.selectedDate}\n`;
+  text += `👤 基础：${dailyStore.age}岁 | ${gender} | ${p.heightCm}cm | ${p.rhr} 静息心率\n`;
+  text += `⚖️ 体重：${d.weight > 0 ? d.weight + ' KG' : '--'}\n`;
+  text += `👣 步数：${d.steps}\n\n`;
+
+  const meals = ['breakfast', 'lunch', 'dinner', 'snack', 'uncategorized'];
+  const foodsByMeal: Record<string, typeof d.foods> = {};
+  meals.forEach(m => (foodsByMeal[m] = d.foods.filter(f => (f.mealType || 'uncategorized') === m)));
+
+  if (d.foods.length > 0) {
+    text += `🍽️ 饮食清单：\n`;
+    meals.forEach(m => {
+      const mealFoods = foodsByMeal[m];
+      if (mealFoods.length > 0) {
+        text += `🍱 ${t('diet.mealLabels.' + m)}：\n`;
+        mealFoods.forEach(f => {
+          text += `  - ${f.name} x${f.multiplier || 1}\n`;
+        });
+      }
+    });
+    text += '\n';
+  }
+
+  if (d.workouts.length > 0) {
+    text += `🏃 运动记录：\n`;
+    d.workouts.forEach(w => {
+      if (w.type === 'aerobic') {
+        text += `  - 有氧 (平均心率 ${w.hr}): ${w.mins}分${w.secs}秒\n`;
+      } else if (w.type === 'anaerobic') {
+        const intensityMap: Record<string, string> = { low: '低强度', med: '中强度', high: '高强度' };
+        text += `  - 无氧 (${intensityMap[w.intensity || 'med']}): ${w.mins}分${w.secs}秒\n`;
+      } else if (w.type === 'manual') {
+        text += `  - 手动录入: ${w.kcal} kcal\n`;
+      }
+    });
+    text += '\n';
+  }
+
+  text += `⚡ 今日概览：\n`;
+  text += `- BMR (基础): ${dailyStore.bmr} kcal\n`;
+  text += `- NEAT (日常): +${dailyStore.stepCalories} kcal\n`;
+  text += `- TEF (食物): +${dailyStore.tefCalories} kcal\n`;
+  text += `- EAT (运动): +${dailyStore.workoutCalories} kcal\n`;
+  text += `- EPOC (后燃): +${dailyStore.epocCalories} kcal\n\n`;
+
+  text += `🔥 总消耗 (TDEE)：${dailyStore.tdee} kcal\n`;
+  text += `🍔 总摄入 (Intake)：${dailyStore.totalConsumed} kcal\n`;
+
+  const deficitStr =
+    dailyStore.dailyDeficit > 0 ? `-${dailyStore.dailyDeficit}` : `+${Math.abs(dailyStore.dailyDeficit)}`;
+  text += `📉 今日缺口：${deficitStr} kcal (等价于${dailyStore.dailyDeficit > 0 ? '消耗' : '囤积'} ${(Math.abs(dailyStore.dailyDeficit) / KCAL_PER_GRAM_FAT).toFixed(1)}g 脂肪)\n`;
+
+  return text;
+};
+
+const handleCopyData = async () => {
+  HapticUtils.lightTick();
+  if (isSupported.value) {
+    await copy(generateSummaryText());
+    notify.success(t('notifications.copySuccess'));
   }
 };
 </script>
@@ -164,6 +237,13 @@ const handleDelete = async () => {
           🗑️ {{ t('dashboard.reset') }}
         </button>
       </div>
+      <button
+        v-if="isSupported"
+        @click="handleCopyData"
+        class="w-full bg-purple-600 hover:bg-purple-500 text-white py-3 rounded-btn text-sm font-bold shadow-md transition-colors"
+      >
+        {{ t('dashboard.copyData') }}
+      </button>
       <button
         @click="
           HapticUtils.lightTick();

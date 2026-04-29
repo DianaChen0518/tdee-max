@@ -13,6 +13,7 @@ export default {
     save: '保存当日',
     sync: '同步到云端',
     reset: '清空重置',
+    copyData: '📋 复制今日数据',
     export: '导出全部历史记录为 Excel',
     intake: '摄入',
     totalIntake: '总摄入',
@@ -74,6 +75,7 @@ export default {
     comboLoaded: '已加载套餐【{name}】',
     copyTodaySuccess: '{name} 已成功投递至今日',
     resetSuccess: '已重置当日数据',
+    copySuccess: '已成功复制今日数据到剪贴板！',
     comboEmptyError: '本餐没有食物可以保存！',
     cloudDataInvalid: '云端数据校验失败: {errors}'
   },

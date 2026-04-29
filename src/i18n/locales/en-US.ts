@@ -13,6 +13,7 @@ export default {
     save: 'Save Daily',
     sync: 'Sync to Cloud',
     reset: 'Clear / Reset',
+    copyData: "📋 Copy Today's Data",
     export: 'Export History to Excel',
     intake: 'Intake',
     totalIntake: 'Total Intake',
@@ -74,6 +75,7 @@ export default {
     comboLoaded: 'Combo [{name}] loaded',
     copyTodaySuccess: '{name} successfully sent to today',
     resetSuccess: 'Daily data reset',
+    copySuccess: "Today's data copied to clipboard!",
     comboEmptyError: 'No items in this meal to save!',
     cloudDataInvalid: 'Cloud data validation failed: {errors}'
   },
