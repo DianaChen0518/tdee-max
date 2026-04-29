@@ -38,9 +38,11 @@ const generateSummaryText = () => {
     p.gender === 'M' ? (locale.value === 'en-US' ? 'Male' : '男性') : locale.value === 'en-US' ? 'Female' : '女性';
 
   let text = `📅 日期：${dailyStore.selectedDate}\n`;
-  text += `👤 基础：${dailyStore.age}岁 | ${gender} | ${p.heightCm}cm | ${p.rhr} 静息心率\n`;
-  text += `⚖️ 体重：${d.weight > 0 ? d.weight + ' KG' : '--'}\n`;
-  text += `👣 步数：${d.steps}\n\n`;
+  text += `👤 基础：\n`;
+  text += `  - ${Number(dailyStore.age).toFixed(2)}岁 | ${gender}\n`;
+  text += `  - ${p.heightCm}cm | ${p.rhr} 静息心率\n`;
+  text += `⚖️ 今日体重：${d.weight > 0 ? d.weight + ' KG' : '--'}\n`;
+  text += `👣 今日步数：${d.steps}\n\n`;
 
   const meals = ['breakfast', 'lunch', 'dinner', 'snack', 'uncategorized'];
   const foodsByMeal: Record<string, typeof d.foods> = {};
@@ -53,7 +55,8 @@ const generateSummaryText = () => {
       if (mealFoods.length > 0) {
         text += `🍱 ${t('diet.mealLabels.' + m)}：\n`;
         mealFoods.forEach(f => {
-          text += `  - ${f.name} x${f.multiplier || 1}\n`;
+          const totalCals = Math.round((f.cals || 0) * (f.multiplier || 1));
+          text += `  - ${f.name} x${f.multiplier || 1} [${totalCals} kcal]\n`;
         });
       }
     });
