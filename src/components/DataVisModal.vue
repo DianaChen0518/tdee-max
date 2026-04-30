@@ -5,6 +5,8 @@ import { useProfileStore } from '../store/useProfileStore';
 import { ReportingService } from '../services/ReportingService';
 import { useI18n } from 'vue-i18n';
 import { HapticUtils } from '../utils/HapticUtils';
+import { useNotification } from '../composables/useNotification';
+import { useClipboard } from '@vueuse/core';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -25,6 +27,8 @@ const dailyStore = useDailyStore();
 const profileStore = useProfileStore();
 const emit = defineEmits(['close']);
 const { t } = useI18n();
+const notify = useNotification();
+const { copy, isSupported } = useClipboard();
 
 const timeRange = ref<'7' | '30' | 'all'>('7');
 
@@ -126,6 +130,16 @@ const setRange = (val: '7' | '30' | 'all') => {
   HapticUtils.lightTick();
   timeRange.value = val;
 };
+
+const handleCopyWeight = async () => {
+  HapticUtils.lightTick();
+  if (!isSupported.value) return;
+  const records = chartRecords.value.filter(r => r.weight > 0);
+  if (records.length === 0) return;
+  const text = records.map(r => `${r.date}: ${r.weight}kg`).join('\n');
+  await copy(text);
+  notify.success(t('notifications.copyWeightSuccess'));
+};
 </script>
 
 <template>
@@ -137,7 +151,7 @@ const setRange = (val: '7' | '30' | 'all') => {
     "
   >
     <div
-      class="bg-gray-50 dark:bg-[#121212] p-6 rounded-card border border-gray-100 dark:border-[#333] w-full max-w-5xl shadow-premium transition-all flex flex-col h-[95vh] md:h-[90vh]"
+      class="bg-gray-50 dark:bg-[#121212] p-4 sm:p-6 md:p-8 rounded-card border border-gray-100 dark:border-[#333] w-full max-w-6xl xl:max-w-[1200px] shadow-premium transition-all flex flex-col h-[95vh] md:h-[90vh]"
     >
       <!-- Header -->
       <div class="flex flex-wrap justify-between items-center mb-6 shrink-0 gap-4">
@@ -265,6 +279,13 @@ const setRange = (val: '7' | '30' | 'all') => {
               <h3 class="text-sm font-black text-gray-800 dark:text-gray-200 flex items-center gap-2">
                 📉 {{ t('datavis.charts.weightTrend') }}
               </h3>
+              <button
+                v-if="isSupported"
+                @click="handleCopyWeight"
+                class="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-bold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors flex items-center gap-1.5"
+              >
+                📋 {{ t('datavis.copyWeight') }}
+              </button>
             </div>
             <div class="h-64 relative w-full">
               <Line :data="weightChartData" :options="{ ...commonOptions, layout: { padding: 0 } }" />

@@ -76,6 +76,7 @@ export default {
     copyTodaySuccess: '{name} 已成功投递至今日',
     resetSuccess: '已重置当日数据',
     copySuccess: '已成功复制今日数据到剪贴板！',
+    copyWeightSuccess: '✅ 成功复制选中区间的体重记录到剪贴板！',
     comboEmptyError: '本餐没有食物可以保存！',
     cloudDataInvalid: '云端数据校验失败: {errors}'
   },
@@ -170,6 +171,7 @@ export default {
       intakeLabel: '摄入 (Intake)',
       tdeeLabel: '消耗 (TDEE)'
     },
+    copyWeight: '一键复制体重',
     details: '明细参考 (近期 7 条)'
   },
   export: {

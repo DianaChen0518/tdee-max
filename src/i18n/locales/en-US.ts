@@ -76,6 +76,7 @@ export default {
     copyTodaySuccess: '{name} successfully sent to today',
     resetSuccess: 'Daily data reset',
     copySuccess: "Today's data copied to clipboard!",
+    copyWeightSuccess: '✅ Weight records copied to clipboard!',
     comboEmptyError: 'No items in this meal to save!',
     cloudDataInvalid: 'Cloud data validation failed: {errors}'
   },
@@ -171,6 +172,7 @@ export default {
       intakeLabel: 'Intake (Energy)',
       tdeeLabel: 'TDEE (Consumed)'
     },
+    copyWeight: 'Copy Weight Data',
     details: 'Recent Details (Last 7)'
   },
   export: {
